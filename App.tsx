@@ -3,7 +3,22 @@ import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import InterestsScreen from './src/screens/InterestsScreen';
+import IdentityScreen from '@/screens/IdentityScreen';
+import LanguageScreen from '@/screens/LanguageScreen';
+
+export type RootStackParamList = {
+  Welcome: undefined;
+  Identity: undefined;
+  Language: undefined;
+  Interests: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,7 +44,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-        <WelcomeScreen />
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
+            <Stack.Screen name="Welcome" component={WelcomeScreen} />
+            <Stack.Screen name="Identity" component={IdentityScreen} />
+            <Stack.Screen name="Language" component={LanguageScreen} />
+            <Stack.Screen name="Interests" component={InterestsScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
       </View>
     </SafeAreaProvider>
   );

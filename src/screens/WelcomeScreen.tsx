@@ -4,6 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { BlurView } from 'expo-blur';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../App';
 
 const { width, height } = Dimensions.get('window');
 
@@ -100,6 +103,8 @@ export default function WelcomeScreen() {
         color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
     }));
 
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
     return (
         <View style={styles.container}>
             <StatusBar style="light" />
@@ -158,7 +163,7 @@ export default function WelcomeScreen() {
                     <TouchableOpacity
                         activeOpacity={0.7}
                         style={styles.outlineButtonWrapper}
-                        onPress={() => console.log("Basla")}
+                        onPress={() => navigation.navigate('Identity')}
                     >
                         <View style={styles.buttonGlowEffect} />
 
