@@ -1,5 +1,5 @@
-// App.tsx
-import React, { useCallback } from 'react';
+// App.tsx 
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,10 +15,11 @@ import { OnboardingProvider } from './src/context/OnboardingContext';
 
 // Importları standart hale getirelim
 import WelcomeScreen from './src/screens/WelcomeScreen';
-import IdentityScreen from './src/screens/IdentityScreen';
-import LanguageScreen from './src/screens/LanguageScreen';
-import PurposeScreen from './src/screens/PurposeScreen';
-import InterestsScreen from './src/screens/InterestsScreen';
+import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ReadStoryScreen from '@/screens/ReadStoryScreen';
+import { VocabularyProvider } from '@/context/VocabularyContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -32,6 +33,27 @@ export default function App() {
     'Inter-SemiBold': require('./src/assets/fonts/Inter-SemiBold.ttf'),
   });
 
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Welcome');
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const prepare = async () => {
+      try {
+        // Kullanıcı var mı kontrol et
+        const user = await AsyncStorage.getItem('user_persona');
+        if (user) {
+          setInitialRoute('Home');
+        }
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    prepare();
+  }, []);
+
   const onLayoutRootView = useCallback(async () => {
     if (fontsLoaded || fontError) {
       await SplashScreen.hideAsync();
@@ -44,19 +66,21 @@ export default function App() {
 
   return (
     <OnboardingProvider>
-      <SafeAreaProvider>
-        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
-              <Stack.Screen name="Welcome" component={WelcomeScreen} />
-              <Stack.Screen name="Identity" component={IdentityScreen} />
-              <Stack.Screen name="Language" component={LanguageScreen} />
-              <Stack.Screen name="Purpose" component={PurposeScreen} />
-              <Stack.Screen name="Interests" component={InterestsScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </View>
-      </SafeAreaProvider>
+      <VocabularyProvider>
+        <SafeAreaProvider>
+          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <NavigationContainer>
+              {/* initialRouteName'i dinamik yaptık */}
+              <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
+                <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+                <Stack.Screen name="ReadStory" component={ReadStoryScreen} />
+                <Stack.Screen name="Home" component={HomeScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </View>
+        </SafeAreaProvider>
+      </VocabularyProvider>
     </OnboardingProvider>
   );
 }

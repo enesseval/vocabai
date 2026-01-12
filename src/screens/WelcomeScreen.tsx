@@ -139,7 +139,7 @@ export default function WelcomeScreen() {
                     <TouchableOpacity
                         activeOpacity={0.7}
                         style={styles.outlineButtonWrapper}
-                        onPress={() => navigation.navigate('Identity')}
+                        onPress={() => navigation.navigate('Onboarding')}
                     >
                         <View style={styles.buttonGlowEffect} />
 

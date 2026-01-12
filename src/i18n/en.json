@@ -45,10 +45,41 @@
                 "examSub": "Ace your tests"
             }
         },
+        "level": {
+            "title": "What's Your",
+            "highlight": "Level?",
+            "subtitle": "Choose your proficiency to get the best content.",
+            "options": {
+                "beginner": {
+                    "label": "Beginner (A1-A2)",
+                    "desc": "I understand simple sentences."
+                },
+                "intermediate": {
+                    "label": "Intermediate (B1-B2)",
+                    "desc": "I can hold daily conversations."
+                },
+                "advanced": {
+                    "label": "Advanced (C1-C2)",
+                    "desc": "I read complex texts easily."
+                }
+            }
+        },
         "interests": {
             "title": "Your",
             "highlight": "Archetype",
-            "subtitle": "Curate your intellectual landscape."
+            "subtitle": "Curate your intellectual landscape.",
+            "topics": {
+                "tech": "Technology",
+                "philosophy": "Philosophy",
+                "art": "Art",
+                "business": "Business",
+                "nature": "Nature",
+                "science": "Science",
+                "literature": "Literature",
+                "history": "History",
+                "cinema": "Cinema",
+                "travel": "Travel"
+            }
         },
         "common": {
             "continue": "CONTINUE",

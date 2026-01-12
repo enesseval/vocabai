@@ -45,10 +45,41 @@
         "examSub": "Sınavlarda başarı"
       }
     },
+    "level": {
+      "title": "Hangi",
+      "highlight": "Seviyedesin?",
+      "subtitle": "Sana en uygun içeriği sunabilmemiz için dil seviyeni seç.",
+      "options": {
+        "beginner": {
+          "label": "Başlangıç (A1-A2)",
+          "desc": "Basit cümleleri anlıyorum."
+        },
+        "intermediate": {
+          "label": "Orta (B1-B2)",
+          "desc": "Günlük konuşmaları sürdürebilirim."
+        },
+        "advanced": {
+          "label": "İleri (C1-C2)",
+          "desc": "Karmaşık metinleri rahatça okurum."
+        }
+      }
+    },
     "interests": {
       "title": "Senin",
       "highlight": "Dünyan",
-      "subtitle": "Entelektüel manzaranı oluştur. Seni yansıtan alanları seç."
+      "subtitle": "Entelektüel manzaranı oluştur. Seni yansıtan alanları seç.",
+      "topics": {
+        "tech": "Teknoloji",
+        "philosophy": "Felsefe",
+        "art": "Sanat",
+        "business": "İş Dünyası",
+        "nature": "Doğa",
+        "science": "Bilim",
+        "literature": "Edebiyat",
+        "history": "Tarih",
+        "cinema": "Sinema",
+        "travel": "Seyahat"
+      }
     },
     "common": {
       "continue": "DEVAM ET",

@@ -25,14 +25,15 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.enesseval.vocabai"
     },
     "web": {
       "favicon": "./assets/icon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "05bec8a6-7b58-49da-8a6c-07060d83aa76"
+        "projectId": "d279367b-d53c-4af1-becf-07204e350c80"
       }
     }
   }

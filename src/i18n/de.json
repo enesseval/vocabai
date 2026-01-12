@@ -45,10 +45,41 @@
                 "examSub": "Tests bestehen"
             }
         },
+        "level": {
+            "title": "Was ist Ihr",
+            "highlight": "Niveau?",
+            "subtitle": "Wählen Sie Ihr Sprachniveau für die besten Inhalte.",
+            "options": {
+                "beginner": {
+                    "label": "Anfänger (A1-A2)",
+                    "desc": "Ich verstehe einfache Sätze."
+                },
+                "intermediate": {
+                    "label": "Mittelstufe (B1-B2)",
+                    "desc": "Ich kann Alltagsgespräche führen."
+                },
+                "advanced": {
+                    "label": "Fortgeschritten (C1-C2)",
+                    "desc": "Ich lese komplexe Texte mühelos."
+                }
+            }
+        },
         "interests": {
             "title": "Ihre",
             "highlight": "Welt",
-            "subtitle": "Kuratieren Sie Ihre intellektuelle Landschaft."
+            "subtitle": "Kuratieren Sie Ihre intellektuelle Landschaft.",
+            "topics": {
+                "tech": "Technologie",
+                "philosophy": "Philosophie",
+                "art": "Kunst",
+                "business": "Wirtschaft",
+                "nature": "Natur",
+                "science": "Wissenschaft",
+                "literature": "Literatur",
+                "history": "Geschichte",
+                "cinema": "Kino",
+                "travel": "Reisen"
+            }
         },
         "common": {
             "continue": "WEITER",

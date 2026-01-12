@@ -7,6 +7,7 @@ export interface UserProfile {
     targetLang: string | null;
     purpose: string | null;
     interests: number[];
+    level: 'Beginner' | 'Intermediate' | 'Advanced';
 }
 
 interface OnboardingContextType {
@@ -22,6 +23,7 @@ const defaultProfile: UserProfile = {
     targetLang: null,
     purpose: null,
     interests: [],
+    level: 'Intermediate',
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
