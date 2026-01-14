@@ -2,13 +2,14 @@
 import { UserProfile } from '../context/OnboardingContext';
 import { Story, AIStoryResponse } from '../types/story';
 
+// API KEY (.env dosyasından gelir)
 const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
 if (!API_KEY) {
     throw new Error("API Key eksik! .env dosyasını kontrol et.");
 }
 
-// Model: gemini-1.5-flash (JSON modu en stabil ve itaatkar model)
+// 🔥 MODEL: En stabil JSON modu için 'gemini-1.5-flash' kullanıyoruz.
 const GEN_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
 
 const TOPIC_MAP: Record<number, string> = {
@@ -26,90 +27,101 @@ const getLanguageName = (code: string | null) => {
 export const generateDailyStory = async (profile: UserProfile): Promise<Story> => {
     const topicNames = profile.interests.map(id => TOPIC_MAP[id]).join(", ");
     const targetLangName = getLanguageName(profile.targetLang);
-    const nativeLangName = getLanguageName(profile.nativeLang || 'tr'); // Varsayılan Türkçe
+    const nativeLangName = getLanguageName(profile.nativeLang || 'tr');
 
-    // 🔥 MASTER PROMPT v2.0 (Role-Switching & Negative Constraints) 🔥
+    // 🔥 MASTER PROMPT: PARALLEL TEXT + STRICT VOCABULARY ANALYSIS 🔥
     const prompt = `
     [SYSTEM SETTING]
-    You are an advanced Linguistic AI Engine capable of two distinct modes: 
-    1. "Creative Author" (Target Language: ${targetLangName})
-    2. "Analytical Translator" (Native Language: ${nativeLangName})
+    You are an advanced Linguistic AI Engine.
+    Modes: "Creative Author" (${targetLangName}) & "Analytical Translator" (${nativeLangName}).
 
     [USER CONTEXT]
-    - Proficiency: ${profile.level}
-    - Native Language: ${nativeLangName}
+    - Level: ${profile.level}
+    - Native: ${nativeLangName}
     - Interests: ${topicNames}
 
-    [STEP 1: CREATIVE AUTHOR MODE]
-    Action: Write an immersive, culturally relevant story in ${targetLangName}.
-    Constraints:
-    - Length: 150-200 words.
-    - Structure: MUST consist of EXACTLY 3 paragraphs separated by '\\n\\n'.
-    - Tone: Engaging and educational.
+    [TASK]
+    1. Create a story (200-300 words) in ${targetLangName}.
+    2. Split it into EXACTLY 3 paragraphs.
+    3. Provide the ${nativeLangName} translation for EACH paragraph.
+    4. Provide a creative Title in ${targetLangName} AND ${nativeLangName}.
+    5. Extract 18-25 key vocabulary items.
 
-    [STEP 2: ANALYTICAL TRANSLATOR MODE]
-    Action: Extract and analyze 18-25 key vocabulary items.
-    Constraints:
-    - Selection: Mix of Verbs, Adjectives, Nouns, and Idioms.
-    - 🛑 NEGATIVE CONSTRAINT: DO NOT use ${targetLangName} for explanations.
-    - ✅ POSITIVE CONSTRAINT: The 'translation' and 'explanation' fields MUST be in ${nativeLangName}.
-    - Context: Explain *why* the word was used in that specific sentence (e.g., metaphorical meaning, tense nuance).
-
-    [OUTPUT CONFIGURATION]
-    Return ONLY raw JSON. No markdown. Follow this schema strictly:
-
+    [OUTPUT SCHEMA (Raw JSON)]
     {
-      "title": "Story Title in ${targetLangName}",
-      "content": "Paragraph 1...\\n\\nParagraph 2...\\n\\nParagraph 3...",
+      "title": "Title in ${targetLangName}",
+      "title_native": "Title in ${nativeLangName}",
+      "segments": [
+        { "target": "Para 1...", "native": "Para 1 translation..." },
+        { "target": "Para 2...", "native": "Para 2 translation..." },
+        { "target": "Para 3...", "native": "Para 3 translation..." }
+      ],
       "level": "${profile.level}",
       "vocabulary": [
         {
-          "word": "The exact word from the text",
-          "lemma": "The dictionary root form",
-          "translation": "Direct meaning in ${nativeLangName}",
-          "explanation": "Contextual analysis strictly in ${nativeLangName}. (Ex: 'Bu kelime burada mecazi anlamda...')",
-          "example": "A simple example sentence in ${targetLangName} containing the word"
+          "word": "word",
+          "lemma": "root",
+          "translation": "meaning",
+          "explanation": "Context in ${nativeLangName}",
+          "example": "Example sentence"
         }
       ]
     }
     `;
 
     try {
+        console.log("📡 Gemini'ye istek atılıyor...");
+
         const response = await fetch(GEN_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
+                // Güvenlik ayarlarını biraz esnetiyoruz ki hikaye bloklanmasın
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
+                ],
                 generationConfig: {
                     responseMimeType: "application/json",
-                    temperature: 0.70 // Yaratıcılık ile tutarlılık arasındaki altın oran
+                    temperature: 0.70
                 }
             })
         });
 
         const data = await response.json();
 
+        // 🔍 DEBUG: Hata durumunda detaylı log
         if (!data.candidates?.[0]?.content) {
-            console.error("Gemini Blocked:", data);
-            throw new Error("Gemini blocked response");
+            console.error("🔴 GEMINI BLOCK DETAYI:", JSON.stringify(data, null, 2));
+            const blockReason = data.promptFeedback?.blockReason || "Unknown";
+            throw new Error(`Gemini blocked response. Reason: ${blockReason}`);
         }
 
         const rawText = data.candidates[0].content.parts[0].text;
 
-        // Temizlik (Markdown gelirse diye)
+        // Markdown temizliği (```json ... ```)
         const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
 
         const aiResponse: AIStoryResponse = JSON.parse(cleanJson);
 
+        // UI için segments kullanacağız, ama TTS (Sesli okuma) için birleşik metin lazım
+        const fullContent = aiResponse.segments.map(s => s.target).join('\n\n');
+
         return {
             id: `ai_${Date.now()}`,
             title: aiResponse.title,
-            content: aiResponse.content,
+            titleNative: aiResponse.title_native,
+            content: fullContent, // TTS için
+            segments: aiResponse.segments, // UI (Magic Paragraph) için
             language: profile.targetLang || 'en',
             topicIds: profile.interests,
             level: aiResponse.level,
             vocabulary: aiResponse.vocabulary
         };
+
     } catch (error) {
         console.error("AI Service Error:", error);
         throw error;
