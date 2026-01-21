@@ -58,11 +58,12 @@ export const VocabularyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setSavedWords(updatedList);
         await AsyncStorage.setItem('user_vocabulary', JSON.stringify(updatedList));
 
-        // Sync to widget
-        await syncToWidget({
-            words: updatedList,
-            lastUpdate: new Date().toISOString(),
-        });
+        // Sync to widget (temporarily disabled for MVP build)
+        // TODO: Re-enable after widget is configured
+        // await syncToWidget({
+        //     words: updatedList,
+        //     lastUpdate: new Date().toISOString(),
+        // });
 
         return true;
     };
@@ -72,11 +73,12 @@ export const VocabularyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setSavedWords(updatedList);
         await AsyncStorage.setItem('user_vocabulary', JSON.stringify(updatedList));
 
-        // Sync to widget
-        await syncToWidget({
-            words: updatedList,
-            lastUpdate: new Date().toISOString(),
-        });
+        // Sync to widget (temporarily disabled for MVP build)
+        // TODO: Re-enable after widget is configured
+        // await syncToWidget({
+        //     words: updatedList,
+        //     lastUpdate: new Date().toISOString(),
+        // });
     };
 
     const isWordSaved = (wordText: string) => {
