@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import StoriesScreen from '../screens/StoriesScreen';
+import VocabularyScreen from '../screens/VocabularyScreen';
 import CustomTabBar from '../components/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -30,7 +31,13 @@ export default function TabNavigator() {
                     tabBarIcon: ({ color, size }) => <Ionicons name="library" size={size} color={color} />
                 }}
             />
-            {/* Profil vs. eklenebilir */}
+            <Tab.Screen
+                name="VocabularyTab"
+                component={VocabularyScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />
+                }}
+            />
         </Tab.Navigator>
     );
 }

@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native'; // Ekran odaklanınca
 
 import { COLORS, FONTS } from '../constants/theme';
 import { Story } from '../types/story';
+import { EmptyState } from '../components/EmptyState';
 
 export default function StoriesScreen({ navigation }: any) {
     const [history, setHistory] = useState<Story[]>([]);
@@ -74,14 +75,17 @@ export default function StoriesScreen({ navigation }: any) {
                     data={history}
                     keyExtractor={item => item.id}
                     renderItem={renderItem}
-                    contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
+                    contentContainerStyle={history.length === 0 ? { flex: 1 } : { padding: 24, paddingBottom: 100 }}
                     ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Ionicons name="library-outline" size={64} color="rgba(255,255,255,0.2)" />
-                            <Text style={styles.emptyText}>Henüz hikaye okumadın.</Text>
-                        </View>
+                        <EmptyState
+                            icon="library-outline"
+                            title="No Stories Yet"
+                            description="Start your learning journey by creating your first AI-powered story. Each story is personalized just for you!"
+                            actionLabel="Create Story"
+                            onAction={() => navigation.navigate('ReadStory')}
+                        />
                     }
                 />
             </SafeAreaView>

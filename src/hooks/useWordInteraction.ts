@@ -1,14 +1,17 @@
 // src/hooks/useWordInteraction.ts
 import { useState, useCallback } from 'react';
-import { LayoutAnimation } from 'react-native'; // Modal animasyonları için hafif çözüm
+import { LayoutAnimation } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Story, WordAnalysis } from '../types/story';
 import { useVocabulary } from '../context/VocabularyContext';
+import { usePurchase } from '../context/PurchaseContext';
 
 export const useWordInteraction = (story: Story | null) => {
-    const { saveWord, removeWord, isWordSaved } = useVocabulary();
+    const { saveWord, removeWord, isWordSaved, savedWords } = useVocabulary();
+    const { canSaveWord, subscription, incrementSavedWords } = usePurchase();
     const [selectedWordData, setSelectedWordData] = useState<WordAnalysis | null>(null);
     const [isModalVisible, setModalVisible] = useState(false);
+    const [showPremiumGate, setShowPremiumGate] = useState(false);
 
     const handleWordClick = useCallback((clickedText: string, lang: 'target' | 'native') => {
         if (!story?.vocabulary) return;
@@ -37,15 +40,33 @@ export const useWordInteraction = (story: Story | null) => {
 
     const toggleSaveWord = useCallback(async () => {
         if (!selectedWordData) return;
-        
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        
+
         if (isWordSaved(selectedWordData.word)) {
+            // Removing a word - always allowed
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             await removeWord(selectedWordData.word);
         } else {
-            await saveWord(selectedWordData);
+            // Saving a new word - check limits
+            if (!canSaveWord()) {
+                // Show premium gate
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                setShowPremiumGate(true);
+                return;
+            }
+
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            const success = await saveWord(selectedWordData);
+
+            if (success && subscription.tier === 'free') {
+                // Track usage for free tier
+                await incrementSavedWords();
+            }
         }
-    }, [selectedWordData, isWordSaved, removeWord, saveWord]);
+    }, [selectedWordData, isWordSaved, removeWord, saveWord, canSaveWord, subscription.tier, incrementSavedWords]);
+
+    const closePremiumGate = useCallback(() => {
+        setShowPremiumGate(false);
+    }, []);
 
     return {
         selectedWordData,
@@ -53,6 +74,8 @@ export const useWordInteraction = (story: Story | null) => {
         handleWordClick,
         closeModal,
         toggleSaveWord,
-        isSaved: selectedWordData ? isWordSaved(selectedWordData.word) : false
+        isSaved: selectedWordData ? isWordSaved(selectedWordData.word) : false,
+        showPremiumGate,
+        closePremiumGate,
     };
 };
