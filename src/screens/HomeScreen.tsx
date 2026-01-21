@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons'; // Lucide yerine mevcut projende Ionicons varsa
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, FONTS } from '../constants/theme';
 import { useOnboarding } from '../context/OnboardingContext';
+import { usePurchase } from '../context/PurchaseContext';
+import { PremiumGate } from '../components/PremiumGate';
 
 const { width } = Dimensions.get('window');
 
@@ -26,6 +28,21 @@ const DAILY_PACKS: {
 export default function HomeScreen() {
     const navigation = useNavigation<any>();
     const { userProfile } = useOnboarding();
+    const { canGenerateStory, incrementStoryGeneration } = usePurchase();
+    const [showPremiumGate, setShowPremiumGate] = useState(false);
+
+    const handleGenerateStory = async () => {
+        if (!canGenerateStory()) {
+            setShowPremiumGate(true);
+            return;
+        }
+
+        // Track usage for free tier
+        await incrementStoryGeneration();
+
+        // Navigate to story generation
+        navigation.navigate('ReadStory');
+    };
 
     return (
         <View style={styles.container}>
@@ -53,7 +70,7 @@ export default function HomeScreen() {
                                 <Text style={styles.sectionTitle}>Günün Hikayesi</Text>
                                 <Text style={styles.sectionSubtitle}>Sana özel seçilmiş AI içerikleri</Text>
                             </View>
-                            <TouchableOpacity onPress={() => navigation.navigate('ReadStory')} style={styles.shuffleBtn}>
+                            <TouchableOpacity onPress={handleGenerateStory} style={styles.shuffleBtn}>
                                 <Ionicons name="shuffle" size={16} color={COLORS.textSecondary} />
                             </TouchableOpacity>
                         </View>
@@ -61,7 +78,7 @@ export default function HomeScreen() {
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 10 }}>
                             {/* "Create New" Card */}
                             <TouchableOpacity
-                                onPress={() => navigation.navigate('ReadStory')}
+                                onPress={handleGenerateStory}
                                 activeOpacity={0.9}
                                 style={[styles.card, styles.createCard]}
                             >
@@ -119,6 +136,19 @@ export default function HomeScreen() {
 
                 </ScrollView>
             </SafeAreaView>
+
+            {/* Premium Gate for Story Generation Limit */}
+            <PremiumGate
+                visible={showPremiumGate}
+                onClose={() => setShowPremiumGate(false)}
+                onUpgrade={() => {
+                    setShowPremiumGate(false);
+                    navigation.navigate('Paywall');
+                }}
+                title="Daily Story Limit Reached"
+                message="You've reached the free tier limit of 5 stories per day. Upgrade to Premium for unlimited AI story generation."
+                feature="stories"
+            />
         </View>
     );
 }

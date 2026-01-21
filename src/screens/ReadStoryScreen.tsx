@@ -24,6 +24,7 @@ import { Story } from '../types/story';
 
 import { useStoryAudio } from '../hooks/useStoryAudio';
 import { useWordInteraction } from '../hooks/useWordInteraction';
+import { PremiumGate } from '../components/PremiumGate';
 
 const { width, height } = Dimensions.get('window');
 
@@ -110,7 +111,7 @@ export default function ReadStoryScreen() {
     const [activePageIndex, setActivePageIndex] = useState(0);
 
     const { isSpeaking, speechCursor, setSpeechCursor, togglePlayPause, handleSkip, stopAudio } = useStoryAudio(story, activePageIndex, userProfile);
-    const { selectedWordData, isModalVisible, handleWordClick, closeModal, toggleSaveWord, isSaved } = useWordInteraction(story);
+    const { selectedWordData, isModalVisible, handleWordClick, closeModal, toggleSaveWord, isSaved, showPremiumGate, closePremiumGate } = useWordInteraction(story);
 
     const scrollX = useRef(new Animated.Value(0)).current;
     const modalSlideAnim = useRef(new Animated.Value(height)).current;
@@ -337,6 +338,19 @@ export default function ReadStoryScreen() {
                     </Animated.View>
                 </View>
             </Modal>
+
+            {/* --- PREMIUM GATE --- */}
+            <PremiumGate
+                visible={showPremiumGate}
+                onClose={closePremiumGate}
+                onUpgrade={() => {
+                    closePremiumGate();
+                    navigation.navigate('Paywall');
+                }}
+                title="Word Limit Reached"
+                message="You've reached the free tier limit of 50 saved words. Upgrade to Premium for unlimited vocabulary storage."
+                feature="savedWords"
+            />
         </View>
     );
 }
