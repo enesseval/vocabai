@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { WordAnalysis } from '../types/story';
-import { syncToWidget } from '../services/widgetDataSync';
 
 interface SavedWord extends WordAnalysis {
     savedAt: string;
@@ -58,13 +57,6 @@ export const VocabularyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setSavedWords(updatedList);
         await AsyncStorage.setItem('user_vocabulary', JSON.stringify(updatedList));
 
-        // Sync to widget (temporarily disabled for MVP build)
-        // TODO: Re-enable after widget is configured
-        // await syncToWidget({
-        //     words: updatedList,
-        //     lastUpdate: new Date().toISOString(),
-        // });
-
         return true;
     };
 
@@ -72,13 +64,6 @@ export const VocabularyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const updatedList = savedWords.filter(w => w.word.toLowerCase() !== wordText.toLowerCase());
         setSavedWords(updatedList);
         await AsyncStorage.setItem('user_vocabulary', JSON.stringify(updatedList));
-
-        // Sync to widget (temporarily disabled for MVP build)
-        // TODO: Re-enable after widget is configured
-        // await syncToWidget({
-        //     words: updatedList,
-        //     lastUpdate: new Date().toISOString(),
-        // });
     };
 
     const isWordSaved = (wordText: string) => {
