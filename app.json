@@ -6,13 +6,13 @@
         {
           "ios": {
             "backgroundColor": "#1e1b4b",
-            "image": "./assets/adaptive-icon.png",
-            "resizeMode": "cover"
+            "image": "./assets/splash.png",
+            "resizeMode": "contain"
           },
           "android": {
             "backgroundColor": "#1e1b4b",
-            "image": "./assets/adaptive-icon.png",
-            "imageWidth": 150
+            "image": "./assets/splash.png",
+            "resizeMode": "contain"
           }
         }
       ]
@@ -21,10 +21,17 @@
     "slug": "vocabai",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e1b4b"
+    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.enesseval.vocabai",
+      "icon": "./assets/icon.png",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -32,7 +39,15 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.enesseval.vocabai"
+      "package": "com.enesseval.vocabai",
+      "icon": "./assets/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1e1b4b"
+      }
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
     },
     "extra": {
       "eas": {
