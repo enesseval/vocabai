@@ -13,11 +13,14 @@ import { RootStackParamList } from './src/types/navigation';
 import './src/i18n';
 import { OnboardingProvider } from './src/context/OnboardingContext';
 import { VocabularyProvider } from '@/context/VocabularyContext';
+import { SubscriptionProvider } from '@/context/SubscriptionContext';
 
 // Ekranlar
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
 import ReadStoryScreen from '@/screens/ReadStoryScreen';
+import PostStoryQuizScreen from '@/screens/PostStoryQuizScreen';
+import PaywallScreen from '@/screens/PaywallScreen';
 import TabNavigator from './src/navigation/TabNavigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -53,39 +56,53 @@ export default function App() {
   return (
     <OnboardingProvider>
       <VocabularyProvider>
-        <SafeAreaProvider>
-          {/* Layout yüklendiği an Native Splash gidecek, alttaki WelcomeScreen görünecek */}
-          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-            <NavigationContainer>
-              {/* initialRouteName her zaman 'Welcome' olsun ki animasyonu görelim */}
-              <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
+        <SubscriptionProvider>
+          <SafeAreaProvider>
+            {/* Layout yüklendiği an Native Splash gidecek, alttaki WelcomeScreen görünecek */}
+            <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+              <NavigationContainer>
+                {/* initialRouteName her zaman 'Welcome' olsun ki animasyonu görelim */}
+                <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
 
-                {/* Bu ekran artık bizim "Custom Splash" ekranımız */}
-                <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                  {/* Bu ekran artık bizim "Custom Splash" ekranımız */}
+                  <Stack.Screen name="Welcome" component={WelcomeScreen} />
 
-                <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen name="MainTabs" component={TabNavigator} />
+                  <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+                  <Stack.Screen name="MainTabs" component={TabNavigator} />
 
-                <Stack.Screen
-                  name="ReadStory"
-                  component={ReadStoryScreen}
-                  options={{ animation: 'slide_from_bottom' }}
-                />
+                  <Stack.Screen
+                    name="ReadStory"
+                    component={ReadStoryScreen}
+                    options={{ animation: 'slide_from_bottom' }}
+                  />
 
-                <Stack.Screen
-                  name="StoryModal"
-                  component={ReadStoryScreen}
-                  options={{
-                    presentation: 'transparentModal',
-                    animation: 'fade',
-                    headerShown: false,
-                  }}
-                />
+                  <Stack.Screen
+                    name="PostStoryQuiz"
+                    component={PostStoryQuizScreen}
+                    options={{ animation: 'slide_from_right' }}
+                  />
 
-              </Stack.Navigator>
-            </NavigationContainer>
-          </View>
-        </SafeAreaProvider>
+                  <Stack.Screen
+                    name="PaywallScreen"
+                    component={PaywallScreen}
+                    options={{ animation: 'slide_from_bottom' }}
+                  />
+
+                  <Stack.Screen
+                    name="StoryModal"
+                    component={ReadStoryScreen}
+                    options={{
+                      presentation: 'transparentModal',
+                      animation: 'fade',
+                      headerShown: false,
+                    }}
+                  />
+
+                </Stack.Navigator>
+              </NavigationContainer>
+            </View>
+          </SafeAreaProvider>
+        </SubscriptionProvider>
       </VocabularyProvider>
     </OnboardingProvider>
   );

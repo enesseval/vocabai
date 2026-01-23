@@ -20,6 +20,7 @@ import { BlurView } from 'expo-blur';
 import { RootStackParamList } from '../types/navigation';
 import { COLORS, FONTS } from '../constants/theme';
 import { useOnboarding } from '../context/OnboardingContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { Story } from '../types/story';
 
 import { useStoryAudio } from '../hooks/useStoryAudio';
@@ -100,8 +101,10 @@ export default function ReadStoryScreen() {
     const route = useRoute<RouteProp<RootStackParamList, 'ReadStory' | 'StoryModal'>>();
     const insets = useSafeAreaInsets();
     const { userProfile } = useOnboarding();
+    const { incrementStoriesRead } = useSubscription();
 
     const isHistoryMode = route.name === 'StoryModal';
+    const isFirstStory = (route.params as any)?.isFirstStory || false;
     const initialStory = (route.params as any)?.story;
 
     const [story, setStory] = useState<Story | null>(initialStory || null);
@@ -177,7 +180,21 @@ export default function ReadStoryScreen() {
         if (pageIndex !== activePageIndex) { setActivePageIndex(pageIndex); setSpeechCursor(0); Haptics.selectionAsync(); }
     };
 
-    const handleComplete = () => { stopAudio(); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] }); };
+    const handleComplete = async () => {
+        stopAudio();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        // Increment stories read count
+        await incrementStoriesRead();
+
+        // If this is the first story (from onboarding), navigate to quiz
+        if (isFirstStory && story) {
+            navigation.navigate('PostStoryQuiz' as any, { story });
+        } else {
+            // Otherwise, go back to main tabs
+            navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+        }
+    };
 
     const renderParagraph = (words: any[], lang: 'target' | 'native', startIndex: number) => {
         let localCharIndex = 0;
