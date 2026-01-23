@@ -12,15 +12,15 @@ import { RootStackParamList } from './src/types/navigation';
 // Context & Utils
 import './src/i18n';
 import { OnboardingProvider } from './src/context/OnboardingContext';
-import { VocabularyProvider } from '@/context/VocabularyContext';
-import { SubscriptionProvider } from '@/context/SubscriptionContext';
+import { VocabularyProvider } from './src/context/VocabularyContext';
+import { SubscriptionProvider } from './src/context/SubscriptionContext';
 
 // Ekranlar
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
-import ReadStoryScreen from '@/screens/ReadStoryScreen';
-import PostStoryQuizScreen from '@/screens/PostStoryQuizScreen';
-import PaywallScreen from '@/screens/PaywallScreen';
+import ReadStoryScreen from './src/screens/ReadStoryScreen';
+import PostStoryQuizScreen from './src/screens/PostStoryQuizScreen';
+import PaywallScreen from './src/screens/PaywallScreen';
 import TabNavigator from './src/navigation/TabNavigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
