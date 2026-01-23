@@ -109,22 +109,30 @@ export default function PostStoryQuizScreen() {
 
     const handleNext = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        console.log(`📝 Question ${currentQuestionIndex + 1}/${questions.length} completed`); // DEBUG
 
         if (currentQuestionIndex < questions.length - 1) {
+            console.log('➡️ Moving to next question'); // DEBUG
             setCurrentQuestionIndex(currentQuestionIndex + 1);
             setSelectedAnswer(null);
             setIsAnswered(false);
             fadeAnim.setValue(0);
             slideAnim.setValue(50);
         } else {
+            console.log('✅ Quiz completed! Showing results...'); // DEBUG
             setShowResults(true);
         }
     };
 
     const handleFinish = () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        // Navigate to Paywall
-        navigation.navigate('PaywallScreen' as any);
+        console.log('🔥 handleFinish called, navigating to PaywallScreen...'); // DEBUG
+        try {
+            navigation.navigate('PaywallScreen');
+            console.log('✅ Navigation successful'); // DEBUG
+        } catch (error) {
+            console.error('❌ Navigation error:', error); // DEBUG
+        }
     };
 
     if (showResults) {
