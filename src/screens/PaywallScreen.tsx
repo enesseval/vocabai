@@ -65,6 +65,8 @@ export default function PaywallScreen() {
     const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan>('monthly');
     const scaleAnim = useRef(new Animated.Value(1)).current;
 
+    console.log('PaywallScreen rendered!'); // DEBUG
+
     const handlePlanSelect = (planId: SubscriptionPlan) => {
         setSelectedPlan(planId);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
