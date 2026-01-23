@@ -87,5 +87,25 @@
       "cancel": "İptal",
       "confirm": "Tamam"
     }
+  },
+  "paywall": {
+    "title": "Premium'a Geç",
+    "subtitle": "Sınırsız AI hikayeleri ve gelişmiş özelliklerle dil öğrenimini hızlandır",
+    "benefit1": "Sınırsız AI Hikayeleri",
+    "benefit2": "Gelişmiş Quiz Sistemi",
+    "benefit3": "Detaylı İlerleme Analizi",
+    "choosePlan": "Planını Seç",
+    "planWeekly": "Haftalık",
+    "planMonthly": "Aylık",
+    "planYearly": "Yıllık",
+    "week": "hafta",
+    "month": "ay",
+    "year": "yıl",
+    "mostpopular": "En Popüler",
+    "bestvalue": "En Avantajlı",
+    "cancelAnytime": "İstediğin zaman iptal et",
+    "users": "100K+ kullanıcı",
+    "startLearning": "Öğrenmeye Başla",
+    "restore": "Satın Alımı Geri Yükle"
   }
 }

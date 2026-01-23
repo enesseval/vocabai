@@ -11,10 +11,11 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types/navigation';
 import { PlanOption, SubscriptionPlan } from '../types/subscription';
 import { useSubscription } from '../context/SubscriptionContext';
-import { COLORS, FONTS } from '../constants/theme';
+import { FONTS } from '../constants/theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,7 +26,6 @@ const PLANS: PlanOption[] = [
         price: '₺99.99',
         duration: 'per week',
         features: ['7-day trial', 'Cancel anytime'],
-        discount: '7 days free',
     },
     {
         id: 'monthly',
@@ -48,16 +48,8 @@ const PLANS: PlanOption[] = [
     },
 ];
 
-const PREMIUM_FEATURES = [
-    { icon: 'infinite', title: 'Unlimited AI Stories', subtitle: 'New personalized stories every day' },
-    { icon: 'school', title: 'Advanced Quiz System', subtitle: 'Spaced repetition & smart reviews' },
-    { icon: 'stats-chart', title: 'Detailed Analytics', subtitle: 'Track your progress & achievements' },
-    { icon: 'cloud-download', title: 'Offline Access', subtitle: 'Download stories for offline reading' },
-    { icon: 'trophy', title: 'Achievements & Badges', subtitle: 'Unlock rewards as you learn' },
-    { icon: 'mic', title: 'Voice Recording', subtitle: 'Practice pronunciation with AI feedback' },
-];
-
 export default function PaywallScreen() {
+    const { t } = useTranslation();
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const insets = useSafeAreaInsets();
     const { updateSubscription } = useSubscription();
@@ -72,8 +64,8 @@ export default function PaywallScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
         Animated.sequence([
-            Animated.timing(scaleAnim, { toValue: 0.95, duration: 100, useNativeDriver: true }),
-            Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, bounciness: 12 }),
+            Animated.timing(scaleAnim, { toValue: 0.98, duration: 100, useNativeDriver: true }),
+            Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, bounciness: 8 }),
         ]).start();
     };
 
@@ -105,61 +97,53 @@ export default function PaywallScreen() {
                 end={{ x: 0, y: 1 }}
             />
 
-            {/* Skip Button */}
+            {/* Subtle Skip Button */}
             <TouchableOpacity
-                style={[styles.skipButton, { top: insets.top + 16 }]}
+                style={[styles.skipButton, { top: insets.top + 12 }]}
                 onPress={handleSkip}
-                activeOpacity={0.7}
+                activeOpacity={0.6}
             >
-                <Ionicons name="close" size={24} color="rgba(255,255,255,0.6)" />
+                <Ionicons name="close" size={20} color="rgba(255,255,255,0.3)" />
             </TouchableOpacity>
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[
                     styles.scrollContent,
-                    { paddingTop: insets.top + 80, paddingBottom: insets.bottom + 40 }
+                    { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 120 }
                 ]}
             >
-                {/* Header */}
+                {/* Compact Header */}
                 <View style={styles.header}>
-                    <View style={styles.iconContainer}>
-                        <LinearGradient
-                            colors={['#fbbf24', '#f59e0b']}
-                            style={styles.iconGradient}
-                        >
-                            <Ionicons name="rocket" size={40} color="#000" />
-                        </LinearGradient>
+                    <LinearGradient
+                        colors={['#fbbf24', '#f59e0b']}
+                        style={styles.iconGradient}
+                    >
+                        <Ionicons name="star" size={32} color="#000" />
+                    </LinearGradient>
+                    <Text style={styles.title}>{t('paywall.title')}</Text>
+                    <Text style={styles.subtitle}>{t('paywall.subtitle')}</Text>
+                </View>
+
+                {/* Compact Features - 3 main benefits */}
+                <View style={styles.benefitsContainer}>
+                    <View style={styles.benefitRow}>
+                        <Ionicons name="infinite" size={20} color="#fbbf24" />
+                        <Text style={styles.benefitText}>{t('paywall.benefit1')}</Text>
                     </View>
-                    <Text style={styles.title}>Unlock Premium</Text>
-                    <Text style={styles.subtitle}>
-                        Master languages faster with unlimited access to all features
-                    </Text>
+                    <View style={styles.benefitRow}>
+                        <Ionicons name="school" size={20} color="#fbbf24" />
+                        <Text style={styles.benefitText}>{t('paywall.benefit2')}</Text>
+                    </View>
+                    <View style={styles.benefitRow}>
+                        <Ionicons name="stats-chart" size={20} color="#fbbf24" />
+                        <Text style={styles.benefitText}>{t('paywall.benefit3')}</Text>
+                    </View>
                 </View>
 
-                {/* Premium Features */}
-                <View style={styles.featuresContainer}>
-                    {PREMIUM_FEATURES.map((feature, index) => (
-                        <BlurView
-                            key={index}
-                            intensity={15}
-                            tint="dark"
-                            style={styles.featureCard}
-                        >
-                            <View style={styles.featureIcon}>
-                                <Ionicons name={feature.icon as any} size={24} color="#fbbf24" />
-                            </View>
-                            <View style={styles.featureText}>
-                                <Text style={styles.featureTitle}>{feature.title}</Text>
-                                <Text style={styles.featureSubtitle}>{feature.subtitle}</Text>
-                            </View>
-                        </BlurView>
-                    ))}
-                </View>
-
-                {/* Plan Selection */}
-                <View style={styles.plansContainer}>
-                    <Text style={styles.sectionTitle}>Choose Your Plan</Text>
+                {/* Plan Cards - Compact Design */}
+                <Text style={styles.sectionTitle}>{t('paywall.choosePlan')}</Text>
+                <View style={styles.plansGrid}>
                     {PLANS.map((plan) => (
                         <TouchableOpacity
                             key={plan.id}
@@ -177,53 +161,42 @@ export default function PaywallScreen() {
                                     style={[
                                         styles.planCard,
                                         selectedPlan === plan.id && styles.planCardSelected,
+                                        plan.isMostPopular && styles.planCardPopular,
                                     ]}
                                 >
+                                    {/* Badge - Top Right */}
                                     {plan.badge && (
                                         <View style={[
                                             styles.badge,
                                             plan.isMostPopular && styles.badgePopular
                                         ]}>
-                                            <Text style={styles.badgeText}>{plan.badge}</Text>
+                                            <Text style={styles.badgeText}>{t(`paywall.${plan.badge.toLowerCase().replace(' ', '')}`)}</Text>
                                         </View>
                                     )}
 
-                                    <View style={styles.planHeader}>
-                                        <View style={styles.planInfo}>
-                                            <Text style={styles.planName}>{plan.name}</Text>
-                                            <View style={styles.priceRow}>
-                                                <Text style={styles.planPrice}>{plan.price}</Text>
-                                                <Text style={styles.planDuration}>/{plan.duration.split(' ')[1]}</Text>
-                                            </View>
-                                            {plan.priceMonthly && (
-                                                <Text style={styles.priceMonthly}>{plan.priceMonthly}</Text>
-                                            )}
-                                        </View>
-
-                                        <View style={[
-                                            styles.radioOuter,
-                                            selectedPlan === plan.id && styles.radioOuterSelected
-                                        ]}>
-                                            {selectedPlan === plan.id && (
-                                                <View style={styles.radioInner} />
-                                            )}
-                                        </View>
+                                    {/* Radio Button - Top Left */}
+                                    <View style={[
+                                        styles.radioOuter,
+                                        selectedPlan === plan.id && styles.radioOuterSelected
+                                    ]}>
+                                        {selectedPlan === plan.id && (
+                                            <View style={styles.radioInner} />
+                                        )}
                                     </View>
 
-                                    <View style={styles.planFeatures}>
-                                        {plan.features.map((feature, idx) => (
-                                            <View key={idx} style={styles.planFeature}>
-                                                <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-                                                <Text style={styles.planFeatureText}>{feature}</Text>
-                                            </View>
-                                        ))}
-                                    </View>
-
-                                    {plan.discount && (
-                                        <View style={styles.discountTag}>
-                                            <Text style={styles.discountText}>{plan.discount}</Text>
+                                    <View style={styles.planContent}>
+                                        <Text style={styles.planName}>{t(`paywall.plan${plan.name}`)}</Text>
+                                        <View style={styles.priceRow}>
+                                            <Text style={styles.planPrice}>{plan.price}</Text>
+                                            <Text style={styles.planDuration}>/{t(`paywall.${plan.duration.split(' ')[1]}`)}</Text>
                                         </View>
-                                    )}
+                                        {plan.priceMonthly && (
+                                            <Text style={styles.priceMonthly}>{plan.priceMonthly}</Text>
+                                        )}
+                                        {plan.discount && (
+                                            <Text style={styles.discountText}>✨ {plan.discount}</Text>
+                                        )}
+                                    </View>
                                 </BlurView>
                             </Animated.View>
                         </TouchableOpacity>
@@ -233,25 +206,21 @@ export default function PaywallScreen() {
                 {/* Trust Signals */}
                 <View style={styles.trustSignals}>
                     <View style={styles.trustItem}>
-                        <Ionicons name="shield-checkmark" size={20} color="#10b981" />
-                        <Text style={styles.trustText}>Cancel anytime</Text>
+                        <Ionicons name="shield-checkmark" size={16} color="#10b981" />
+                        <Text style={styles.trustText}>{t('paywall.cancelAnytime')}</Text>
                     </View>
                     <View style={styles.trustItem}>
-                        <Ionicons name="people" size={20} color="#10b981" />
-                        <Text style={styles.trustText}>100K+ learners</Text>
-                    </View>
-                    <View style={styles.trustItem}>
-                        <Ionicons name="lock-closed" size={20} color="#10b981" />
-                        <Text style={styles.trustText}>Secure payment</Text>
+                        <Ionicons name="people" size={16} color="#10b981" />
+                        <Text style={styles.trustText}>{t('paywall.users')}</Text>
                     </View>
                 </View>
             </ScrollView>
 
-            {/* Bottom CTA */}
+            {/* Compact Bottom CTA */}
             <BlurView
                 intensity={50}
                 tint="dark"
-                style={[styles.bottomBar, { paddingBottom: insets.bottom + 20 }]}
+                style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 12) }]}
             >
                 <TouchableOpacity
                     style={styles.subscribeButton}
@@ -264,13 +233,13 @@ export default function PaywallScreen() {
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                     >
-                        <Text style={styles.subscribeButtonText}>Start Learning</Text>
-                        <Ionicons name="arrow-forward" size={20} color="#000" />
+                        <Text style={styles.subscribeButtonText}>{t('paywall.startLearning')}</Text>
+                        <Ionicons name="arrow-forward" size={18} color="#000" />
                     </LinearGradient>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={handleSkip} style={styles.restoreButton}>
-                    <Text style={styles.restoreText}>Restore Purchases</Text>
+                    <Text style={styles.restoreText}>{t('paywall.restore')}</Text>
                 </TouchableOpacity>
             </BlurView>
         </View>
@@ -284,212 +253,171 @@ const styles = StyleSheet.create({
     },
     skipButton: {
         position: 'absolute',
-        right: 20,
+        right: 16,
         zIndex: 10,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255,255,255,0.05)',
         justifyContent: 'center',
         alignItems: 'center',
     },
     scrollContent: {
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
     },
     header: {
         alignItems: 'center',
-        marginBottom: 40,
-    },
-    iconContainer: {
-        marginBottom: 24,
+        marginBottom: 28,
     },
     iconGradient: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
+        width: 64,
+        height: 64,
+        borderRadius: 32,
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: 16,
     },
     title: {
         color: '#fff',
-        fontSize: 32,
+        fontSize: 28,
         fontFamily: FONTS.bold,
         textAlign: 'center',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     subtitle: {
         color: 'rgba(255,255,255,0.6)',
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: FONTS.regular,
         textAlign: 'center',
-        lineHeight: 24,
+        lineHeight: 20,
+        paddingHorizontal: 16,
     },
-    featuresContainer: {
+    benefitsContainer: {
         gap: 12,
-        marginBottom: 40,
+        marginBottom: 32,
     },
-    featureCard: {
+    benefitRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.03)',
-        borderRadius: 16,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        overflow: 'hidden',
+        gap: 12,
+        paddingVertical: 8,
     },
-    featureIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: 'rgba(251, 191, 36, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    featureText: {
-        flex: 1,
-    },
-    featureTitle: {
+    benefitText: {
         color: '#fff',
-        fontSize: 16,
-        fontFamily: FONTS.semiBold,
-        marginBottom: 4,
-    },
-    featureSubtitle: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 13,
+        fontSize: 15,
         fontFamily: FONTS.regular,
-        lineHeight: 18,
-    },
-    plansContainer: {
-        marginBottom: 32,
+        flex: 1,
     },
     sectionTitle: {
         color: '#fff',
-        fontSize: 20,
+        fontSize: 18,
         fontFamily: FONTS.bold,
-        marginBottom: 20,
+        marginBottom: 16,
+    },
+    plansGrid: {
+        gap: 12,
+        marginBottom: 24,
     },
     planCard: {
         backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 20,
-        padding: 20,
+        borderRadius: 16,
+        padding: 16,
         borderWidth: 2,
         borderColor: 'rgba(255,255,255,0.1)',
-        marginBottom: 16,
-        overflow: 'hidden',
+        overflow: 'visible',
         position: 'relative',
     },
     planCardSelected: {
         borderColor: '#fbbf24',
-        backgroundColor: 'rgba(251, 191, 36, 0.08)',
+        backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    },
+    planCardPopular: {
+        borderColor: '#7c3aed',
     },
     badge: {
         position: 'absolute',
-        top: 12,
+        top: -8,
         right: 12,
-        backgroundColor: 'rgba(251, 191, 36, 0.2)',
-        paddingHorizontal: 12,
+        backgroundColor: 'rgba(251, 191, 36, 0.95)',
+        paddingHorizontal: 10,
         paddingVertical: 4,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#fbbf24',
+        borderRadius: 10,
+        zIndex: 1,
     },
     badgePopular: {
-        backgroundColor: 'rgba(124, 58, 237, 0.2)',
-        borderColor: '#7c3aed',
+        backgroundColor: 'rgba(124, 58, 237, 0.95)',
     },
     badgeText: {
-        color: '#fbbf24',
-        fontSize: 11,
+        color: '#fff',
+        fontSize: 10,
         fontFamily: FONTS.bold,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
     },
-    planHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 16,
-    },
-    planInfo: {
-        flex: 1,
-    },
-    planName: {
-        color: '#fff',
-        fontSize: 20,
-        fontFamily: FONTS.bold,
-        marginBottom: 8,
-    },
-    priceRow: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-    },
-    planPrice: {
-        color: '#fbbf24',
-        fontSize: 28,
-        fontFamily: FONTS.bold,
-    },
-    planDuration: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 14,
-        fontFamily: FONTS.regular,
-        marginLeft: 4,
-    },
-    priceMonthly: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 13,
-        fontFamily: FONTS.regular,
-        marginTop: 4,
-    },
     radioOuter: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
         borderWidth: 2,
         borderColor: 'rgba(255,255,255,0.3)',
         justifyContent: 'center',
         alignItems: 'center',
+        zIndex: 1,
     },
     radioOuterSelected: {
         borderColor: '#fbbf24',
     },
     radioInner: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
         backgroundColor: '#fbbf24',
     },
-    planFeatures: {
-        gap: 8,
-        marginBottom: 12,
+    planContent: {
+        marginLeft: 32,
     },
-    planFeature: {
+    planName: {
+        color: '#fff',
+        fontSize: 16,
+        fontFamily: FONTS.bold,
+        marginBottom: 4,
+    },
+    priceRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
+        alignItems: 'baseline',
+        marginBottom: 4,
     },
-    planFeatureText: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 14,
+    planPrice: {
+        color: '#fbbf24',
+        fontSize: 22,
+        fontFamily: FONTS.bold,
+    },
+    planDuration: {
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 12,
         fontFamily: FONTS.regular,
+        marginLeft: 4,
     },
-    discountTag: {
-        marginTop: 8,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.1)',
+    priceMonthly: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 12,
+        fontFamily: FONTS.regular,
+        marginTop: 2,
     },
     discountText: {
         color: '#10b981',
-        fontSize: 13,
+        fontSize: 12,
         fontFamily: FONTS.semiBold,
+        marginTop: 6,
     },
     trustSignals: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginBottom: 20,
+        justifyContent: 'center',
+        gap: 24,
+        marginBottom: 16,
     },
     trustItem: {
         flexDirection: 'row',
@@ -497,8 +425,8 @@ const styles = StyleSheet.create({
         gap: 6,
     },
     trustText: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 12,
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 11,
         fontFamily: FONTS.regular,
     },
     bottomBar: {
@@ -507,35 +435,35 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        paddingTop: 20,
-        paddingHorizontal: 24,
+        paddingTop: 12,
+        paddingHorizontal: 20,
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.1)',
+        borderTopColor: 'rgba(255,255,255,0.05)',
     },
     subscribeButton: {
-        borderRadius: 16,
+        borderRadius: 14,
         overflow: 'hidden',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     subscribeGradient: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        paddingVertical: 18,
+        paddingVertical: 14,
     },
     subscribeButtonText: {
         color: '#000',
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: FONTS.bold,
     },
     restoreButton: {
-        paddingVertical: 12,
+        paddingVertical: 8,
         alignItems: 'center',
     },
     restoreText: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 14,
+        color: 'rgba(255,255,255,0.4)',
+        fontSize: 12,
         fontFamily: FONTS.regular,
     },
 });
