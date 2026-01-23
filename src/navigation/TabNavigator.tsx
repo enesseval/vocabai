@@ -3,6 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import StoriesScreen from '../screens/StoriesScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import ProgressScreen from '../screens/ProgressScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import CustomTabBar from '../components/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -30,7 +33,27 @@ export default function TabNavigator() {
                     tabBarIcon: ({ color, size }) => <Ionicons name="library" size={size} color={color} />
                 }}
             />
-            {/* Profil vs. eklenebilir */}
+            <Tab.Screen
+                name="ProgressTab"
+                component={ProgressScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size} color={color} />
+                }}
+            />
+            <Tab.Screen
+                name="ProfileTab"
+                component={ProfileScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />
+                }}
+            />
+            <Tab.Screen
+                name="SettingsTab"
+                component={SettingsScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => <Ionicons name="settings" size={size} color={color} />
+                }}
+            />
         </Tab.Navigator>
     );
 }

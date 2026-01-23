@@ -9,4 +9,8 @@ export type RootStackParamList = {
   StoryModal: { story: Story };
   PostStoryQuiz: { story: Story };
   PaywallScreen: undefined;
+  Profile: undefined;
+  Progress: undefined;
+  Settings: undefined;
+  VocabQuiz: undefined;
 };
