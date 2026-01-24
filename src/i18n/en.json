@@ -87,5 +87,25 @@
             "cancel": "Cancel",
             "confirm": "Done"
         }
+    },
+    "paywall": {
+        "title": "Unlock Premium",
+        "subtitle": "Master languages faster with unlimited AI stories and advanced features",
+        "benefit1": "Unlimited AI Stories",
+        "benefit2": "Advanced Quiz System",
+        "benefit3": "Detailed Progress Analytics",
+        "choosePlan": "Choose Your Plan",
+        "planWeekly": "Weekly",
+        "planMonthly": "Monthly",
+        "planYearly": "Yearly",
+        "week": "week",
+        "month": "month",
+        "year": "year",
+        "mostpopular": "Most Popular",
+        "bestvalue": "Best Value",
+        "cancelAnytime": "Cancel anytime",
+        "users": "100K+ users",
+        "startLearning": "Start Learning",
+        "restore": "Restore Purchases"
     }
 }

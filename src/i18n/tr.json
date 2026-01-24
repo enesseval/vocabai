@@ -87,5 +87,34 @@
       "cancel": "İptal",
       "confirm": "Tamam"
     }
+  },
+  "paywall": {
+    "title": "Premium'a Geç",
+    "subtitle": "Sınırsız AI hikayeleri ve gelişmiş özelliklerle dil öğrenimini hızlandır",
+    "heroTitle": "Dil Potansiyelini Ortaya Çıkar",
+    "heroSubtitle": "Binlerce kişi yeni diller öğreniyor",
+    "benefit1": "Sınırsız AI Hikayeleri",
+    "benefit2": "Gelişmiş Quiz Sistemi",
+    "benefit3": "Detaylı İlerleme Analizi",
+    "benefit4": "Çevrimdışı Erişim",
+    "choosePlan": "Planını Seç",
+    "planWeekly": "Haftalık",
+    "planMonthly": "Aylık",
+    "planYearly": "Yıllık",
+    "week": "hafta",
+    "month": "ay",
+    "year": "yıl",
+    "day": "gün",
+    "daysFree": "gün ücretsiz",
+    "mostpopular": "En Popüler",
+    "bestvalue": "En Avantajlı",
+    "cta": "7 Günlük Denemeyi Başlat",
+    "cancelAnytime": "İstediğin zaman iptal et",
+    "securePayment": "Güvenli ödeme",
+    "noCommitment": "Taahhüt yok",
+    "users": "100K+ kullanıcı",
+    "startLearning": "Öğrenmeye Başla",
+    "finePrint": "7 günlük ücretsiz deneme, sonra ₺1,199/yıl. İstediğin zaman iptal edebilirsin.",
+    "restore": "Satın Alımı Geri Yükle"
   }
 }

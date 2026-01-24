@@ -105,7 +105,7 @@ export default function OnboardingScreen() {
                 await AsyncStorage.setItem('user_persona', JSON.stringify(userProfile));
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'ReadStory' }],
+                    routes: [{ name: 'ReadStory', params: { isFirstStory: true } }],
                 });
             } catch (error) {
                 console.error("Kayıt hatası:", error);
