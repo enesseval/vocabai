@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Animated, Linking
+    View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Animated
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -93,7 +94,7 @@ export default function PaywallScreen() {
     return (
         <View style={styles.container}>
             <LinearGradient
-                colors={['#ffffff', '#f8f9fa', '#e0e7ff']}
+                colors={['#0f172a', '#1e1b4b', '#000000']}
                 style={StyleSheet.absoluteFill}
             />
 
@@ -128,10 +129,14 @@ export default function PaywallScreen() {
                                 }}
                                 activeOpacity={0.7}
                             >
-                                <View style={[
-                                    styles.planCard,
-                                    isSelected && styles.planCardSelected
-                                ]}>
+                                <BlurView
+                                    intensity={20}
+                                    tint="dark"
+                                    style={[
+                                        styles.planCard,
+                                        isSelected && styles.planCardSelected
+                                    ]}
+                                >
                                     {/* Best Value Badge */}
                                     {plan.isBestValue && (
                                         <View style={styles.bestValueBadge}>
@@ -155,7 +160,7 @@ export default function PaywallScreen() {
                                             ]}>
                                                 {isSelected && (
                                                     <View style={styles.radioInner}>
-                                                        <Ionicons name="checkmark" size={14} color="#fff" />
+                                                        <Ionicons name="checkmark" size={14} color="#000" />
                                                     </View>
                                                 )}
                                             </View>
@@ -177,7 +182,7 @@ export default function PaywallScreen() {
                                             </Text>
                                         </View>
                                     </View>
-                                </View>
+                                </BlurView>
                             </TouchableOpacity>
                         );
                     })}
@@ -189,7 +194,14 @@ export default function PaywallScreen() {
                     onPress={handleSubscribe}
                     activeOpacity={0.85}
                 >
-                    <Text style={styles.ctaText}>Continue</Text>
+                    <LinearGradient
+                        colors={['#fbbf24', '#f59e0b']}
+                        style={styles.ctaGradient}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
+                        <Text style={styles.ctaText}>Continue</Text>
+                    </LinearGradient>
                 </TouchableOpacity>
 
                 {/* Links */}
@@ -208,19 +220,19 @@ export default function PaywallScreen() {
 
                     <View style={styles.featuresList}>
                         <View style={styles.featureRow}>
-                            <Ionicons name="checkmark" size={20} color="#6366f1" />
+                            <Ionicons name="checkmark" size={20} color="#fbbf24" />
                             <Text style={styles.featureText}>{t('paywall.benefit1')}</Text>
                         </View>
                         <View style={styles.featureRow}>
-                            <Ionicons name="checkmark" size={20} color="#6366f1" />
+                            <Ionicons name="checkmark" size={20} color="#fbbf24" />
                             <Text style={styles.featureText}>{t('paywall.benefit2')}</Text>
                         </View>
                         <View style={styles.featureRow}>
-                            <Ionicons name="checkmark" size={20} color="#6366f1" />
+                            <Ionicons name="checkmark" size={20} color="#fbbf24" />
                             <Text style={styles.featureText}>{t('paywall.benefit3')}</Text>
                         </View>
                         <View style={styles.featureRow}>
-                            <Ionicons name="checkmark" size={20} color="#6366f1" />
+                            <Ionicons name="checkmark" size={20} color="#fbbf24" />
                             <Text style={styles.featureText}>{t('paywall.benefit4')}</Text>
                         </View>
                     </View>
@@ -238,7 +250,7 @@ export default function PaywallScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#000',
     },
     scrollContent: {
         paddingHorizontal: 24,
@@ -247,18 +259,18 @@ const styles = StyleSheet.create({
         marginBottom: 32,
     },
     title: {
-        color: '#1e1b4b',
+        color: '#fff',
         fontSize: 32,
         fontFamily: FONTS.bold,
         marginBottom: 8,
     },
     subtitle: {
-        color: '#1e1b4b',
+        color: 'rgba(255,255,255,0.7)',
         fontSize: 20,
         fontFamily: FONTS.semiBold,
     },
     sectionTitle: {
-        color: '#1e1b4b',
+        color: '#fff',
         fontSize: 18,
         fontFamily: FONTS.semiBold,
         marginBottom: 16,
@@ -268,31 +280,25 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     planCard: {
-        backgroundColor: '#fff',
+        backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 16,
         padding: 20,
         borderWidth: 2,
-        borderColor: '#e5e7eb',
+        borderColor: 'rgba(255,255,255,0.1)',
         position: 'relative',
-        // Shadow for iOS
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        // Shadow for Android
-        elevation: 2,
+        overflow: 'hidden',
     },
     planCardSelected: {
-        borderColor: '#6366f1',
+        borderColor: '#fbbf24',
         borderWidth: 3,
-        backgroundColor: '#fafafa',
+        backgroundColor: 'rgba(251, 191, 36, 0.08)',
     },
     bestValueBadge: {
         position: 'absolute',
         top: -12,
         left: '50%',
         transform: [{ translateX: -45 }],
-        backgroundColor: '#1e1b4b',
+        backgroundColor: '#7c3aed',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 12,
@@ -308,13 +314,15 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 16,
         right: 16,
-        backgroundColor: '#e0e7ff',
+        backgroundColor: 'rgba(251, 191, 36, 0.15)',
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(251, 191, 36, 0.3)',
     },
     savingsText: {
-        color: '#6366f1',
+        color: '#fbbf24',
         fontSize: 12,
         fontFamily: FONTS.bold,
     },
@@ -331,20 +339,20 @@ const styles = StyleSheet.create({
         height: 28,
         borderRadius: 14,
         borderWidth: 2,
-        borderColor: '#d1d5db',
+        borderColor: 'rgba(255,255,255,0.3)',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: 'transparent',
     },
     radioOuterSelected: {
-        borderColor: '#6366f1',
-        backgroundColor: '#6366f1',
+        borderColor: '#fbbf24',
+        backgroundColor: '#fbbf24',
     },
     radioInner: {
         width: 20,
         height: 20,
         borderRadius: 10,
-        backgroundColor: '#6366f1',
+        backgroundColor: '#fbbf24',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -352,13 +360,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     planName: {
-        color: '#1e1b4b',
+        color: '#fff',
         fontSize: 18,
         fontFamily: FONTS.bold,
         marginBottom: 4,
     },
     trialText: {
-        color: '#6b7280',
+        color: 'rgba(255,255,255,0.5)',
         fontSize: 14,
         fontFamily: FONTS.regular,
     },
@@ -366,32 +374,33 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     planPrice: {
-        color: '#1e1b4b',
+        color: '#fff',
         fontSize: 24,
         fontFamily: FONTS.bold,
         marginBottom: 2,
     },
     billingText: {
-        color: '#6b7280',
+        color: 'rgba(255,255,255,0.5)',
         fontSize: 12,
         fontFamily: FONTS.regular,
     },
     ctaButton: {
-        backgroundColor: '#6366f1',
         borderRadius: 16,
-        paddingVertical: 18,
-        alignItems: 'center',
+        overflow: 'hidden',
         marginBottom: 20,
-        // Shadow for iOS
-        shadowColor: '#6366f1',
+        shadowColor: '#fbbf24',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
-        // Shadow for Android
         elevation: 4,
     },
+    ctaGradient: {
+        paddingVertical: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     ctaText: {
-        color: '#fff',
+        color: '#000',
         fontSize: 18,
         fontFamily: FONTS.bold,
     },
@@ -402,7 +411,7 @@ const styles = StyleSheet.create({
         marginBottom: 32,
     },
     linkText: {
-        color: '#6366f1',
+        color: '#fbbf24',
         fontSize: 14,
         fontFamily: FONTS.regular,
     },
@@ -410,7 +419,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     featuresTitle: {
-        color: '#1e1b4b',
+        color: '#fff',
         fontSize: 18,
         fontFamily: FONTS.semiBold,
         marginBottom: 16,
@@ -424,7 +433,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     featureText: {
-        color: '#374151',
+        color: 'rgba(255,255,255,0.8)',
         fontSize: 16,
         fontFamily: FONTS.regular,
         flex: 1,
@@ -434,7 +443,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     restoreText: {
-        color: '#6b7280',
+        color: 'rgba(255,255,255,0.4)',
         fontSize: 14,
         fontFamily: FONTS.regular,
     },
