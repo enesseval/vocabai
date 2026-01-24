@@ -63,10 +63,13 @@ export default function PostStoryQuizScreen() {
     const [results, setResults] = useState<QuizResult[]>([]);
     const [showResults, setShowResults] = useState(false);
 
-    const fadeAnim = new Animated.Value(0);
-    const slideAnim = new Animated.Value(50);
+    const fadeAnim = React.useRef(new Animated.Value(0)).current;
+    const slideAnim = React.useRef(new Animated.Value(50)).current;
 
     useEffect(() => {
+        fadeAnim.setValue(0);
+        slideAnim.setValue(50);
+
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
@@ -80,6 +83,18 @@ export default function PostStoryQuizScreen() {
             }),
         ]).start();
     }, [currentQuestionIndex]);
+
+    // Animate results screen when it appears
+    useEffect(() => {
+        if (showResults) {
+            fadeAnim.setValue(0);
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 600,
+                useNativeDriver: true,
+            }).start();
+        }
+    }, [showResults]);
 
     const currentQuestion = questions[currentQuestionIndex];
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
