@@ -13,6 +13,7 @@ import { RootStackParamList } from '../../types/navigation';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingFooter from '../../components/OnboardingFooter';
 import { useOnboarding } from '../../context/OnboardingContext';
+import { useVocabulary } from '../../context/VocabularyContext';
 import { COLORS, SIZES } from '../../constants/theme';
 
 // STEPS
@@ -26,6 +27,7 @@ export default function OnboardingScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { t } = useTranslation();
     const { userProfile } = useOnboarding();
+    const { initializeDefaultWords } = useVocabulary();
 
     const [currentStep, setCurrentStep] = useState(1);
     const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -99,10 +101,16 @@ export default function OnboardingScreen() {
             });
 
         } else {
-            // SON ADIM (5. Adım): Kayıt & ReadStory
+            // SON ADIM (5. Adım): Kayıt & Initialize Default Words & ReadStory
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             try {
+                // Save user profile
                 await AsyncStorage.setItem('user_persona', JSON.stringify(userProfile));
+
+                // Initialize 5 default vocabulary words based on user interests
+                await initializeDefaultWords(userProfile.interests);
+
+                // Navigate to first story
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'ReadStory', params: { isFirstStory: true } }],

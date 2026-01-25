@@ -4,15 +4,19 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { COLORS } from '../constants/theme'; // Senin tema dosyan
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { COLORS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
-const BAR_HEIGHT = 70;
-const FLOATING_MARGIN = 20;
+const BAR_HEIGHT = 64;
+const HORIZONTAL_PADDING = 32; // Kenarlardan boşluk
+const MAX_WIDTH = 380; // Maksimum genişlik
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+    const insets = useSafeAreaInsets();
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { bottom: insets.bottom + 16 }]}>
             <View style={styles.barWrapper}>
                 {/* GLOW BORDER EFFECT */}
                 <LinearGradient
@@ -89,31 +93,32 @@ const TabButton = ({ onPress, active, children }: any) => {
 const styles = StyleSheet.create({
     container: {
         position: 'absolute',
-        bottom: 30,
-        left: FLOATING_MARGIN,
-        right: FLOATING_MARGIN,
+        left: 0,
+        right: 0,
         alignItems: 'center',
+        justifyContent: 'center',
     },
     barWrapper: {
-        width: '100%',
+        width: width - (HORIZONTAL_PADDING * 2), // Kenarlardan boşluk
+        maxWidth: MAX_WIDTH,
         height: BAR_HEIGHT,
-        borderRadius: 35,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
+        borderRadius: 32,
+        shadowColor: "#fbbf24",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.2,
         shadowRadius: 20,
-        elevation: 10,
+        elevation: 15,
     },
     border: {
-        borderRadius: 35,
-        padding: 1, // İnce border efekti
+        borderRadius: 32,
+        padding: 1.5,
         flex: 1,
     },
     inner: {
         flex: 1,
-        borderRadius: 35,
+        borderRadius: 30.5,
         overflow: 'hidden',
-        backgroundColor: 'rgba(20,20,25,0.75)', // Koyu transparan zemin
+        backgroundColor: 'rgba(10, 10, 15, 0.98)',
     },
     tabRow: {
         flex: 1,

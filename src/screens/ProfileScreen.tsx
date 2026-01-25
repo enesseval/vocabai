@@ -1,7 +1,7 @@
 // src/screens/ProfileScreen.tsx
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -9,6 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useVocabulary } from '../context/VocabularyContext';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -27,10 +28,40 @@ export default function ProfileScreen() {
     const { userProfile } = useOnboarding();
     const { savedWords } = useVocabulary();
     const { isPremium, subscription, storiesRead } = useSubscription();
+    const [showDevTools, setShowDevTools] = useState(false);
 
     const handleBack = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         navigation.goBack();
+    };
+
+    const handleClearDatabase = () => {
+        Alert.alert(
+            'Clear All Data',
+            'This will delete all your progress, vocabulary, and settings. This action cannot be undone. Are you sure?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Clear All Data',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.clear();
+                            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                            Alert.alert('Success', 'All data has been cleared. Please restart the app.');
+                        } catch (error) {
+                            console.error('Error clearing database:', error);
+                            Alert.alert('Error', 'Failed to clear data. Please try again.');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleViewData = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        navigation.navigate('DBViewer' as any);
     };
 
     return (
@@ -47,9 +78,7 @@ export default function ProfileScreen() {
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Profile</Text>
-                <TouchableOpacity style={styles.settingsButton}>
-                    <Ionicons name="settings-outline" size={24} color="#fff" />
-                </TouchableOpacity>
+                <View style={styles.headerSpacer} />
             </View>
 
             <ScrollView
@@ -172,6 +201,61 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
+                {/* Settings & Dev Tools */}
+                <View style={styles.section}>
+                    <TouchableOpacity
+                        onPress={() => setShowDevTools(!showDevTools)}
+                        style={styles.sectionHeader}
+                    >
+                        <Text style={styles.sectionTitle}>Settings & Dev Tools</Text>
+                        <Ionicons
+                            name={showDevTools ? "chevron-up" : "chevron-down"}
+                            size={24}
+                            color="#fff"
+                        />
+                    </TouchableOpacity>
+
+                    {showDevTools && (
+                        <BlurView intensity={15} tint="dark" style={styles.infoCard}>
+                            <TouchableOpacity
+                                onPress={handleViewData}
+                                style={styles.devToolButton}
+                            >
+                                <View style={styles.devToolLeft}>
+                                    <Ionicons name="eye-outline" size={24} color="#10b981" />
+                                    <View style={styles.devToolText}>
+                                        <Text style={styles.devToolTitle}>View Database</Text>
+                                        <Text style={styles.devToolDescription}>
+                                            View all AsyncStorage data in console
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.5)" />
+                            </TouchableOpacity>
+
+                            <View style={styles.divider} />
+
+                            <TouchableOpacity
+                                onPress={handleClearDatabase}
+                                style={styles.devToolButton}
+                            >
+                                <View style={styles.devToolLeft}>
+                                    <Ionicons name="trash-outline" size={24} color="#ef4444" />
+                                    <View style={styles.devToolText}>
+                                        <Text style={[styles.devToolTitle, { color: '#ef4444' }]}>
+                                            Clear Database
+                                        </Text>
+                                        <Text style={styles.devToolDescription}>
+                                            Delete all data (cannot be undone)
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.5)" />
+                            </TouchableOpacity>
+                        </BlurView>
+                    )}
+                </View>
+
                 {/* Action Buttons */}
                 <View style={styles.section}>
                     {!isPremium && (
@@ -221,13 +305,8 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontFamily: FONTS.bold,
     },
-    settingsButton: {
+    headerSpacer: {
         width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     scrollContent: {
         paddingHorizontal: 24,
@@ -326,11 +405,16 @@ const styles = StyleSheet.create({
     section: {
         marginBottom: 32,
     },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
     sectionTitle: {
         color: '#fff',
         fontSize: 20,
         fontFamily: FONTS.bold,
-        marginBottom: 16,
     },
     infoCard: {
         backgroundColor: 'rgba(255,255,255,0.05)',
@@ -445,5 +529,31 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontFamily: FONTS.semiBold,
+    },
+    devToolButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 16,
+    },
+    devToolLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+        flex: 1,
+    },
+    devToolText: {
+        flex: 1,
+    },
+    devToolTitle: {
+        color: '#fff',
+        fontSize: 16,
+        fontFamily: FONTS.semiBold,
+        marginBottom: 4,
+    },
+    devToolDescription: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 13,
+        fontFamily: FONTS.regular,
     },
 });

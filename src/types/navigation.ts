@@ -13,4 +13,5 @@ export type RootStackParamList = {
   Progress: undefined;
   Settings: undefined;
   VocabQuiz: undefined;
+  DBViewer:undefined;
 };

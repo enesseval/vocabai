@@ -14,6 +14,7 @@ import './src/i18n';
 import { OnboardingProvider } from './src/context/OnboardingContext';
 import { VocabularyProvider } from './src/context/VocabularyContext';
 import { SubscriptionProvider } from './src/context/SubscriptionContext';
+import { XPProvider } from './src/context/XPContext';
 
 // Ekranlar
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -21,6 +22,8 @@ import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
 import ReadStoryScreen from './src/screens/ReadStoryScreen';
 import PostStoryQuizScreen from './src/screens/PostStoryQuizScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import DBViewerScreen from './src/screens/DBViewerScreen';
 import TabNavigator from './src/navigation/TabNavigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -57,7 +60,8 @@ export default function App() {
     <OnboardingProvider>
       <VocabularyProvider>
         <SubscriptionProvider>
-          <SafeAreaProvider>
+          <XPProvider>
+            <SafeAreaProvider>
             {/* Layout yüklendiği an Native Splash gidecek, alttaki WelcomeScreen görünecek */}
             <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
               <NavigationContainer>
@@ -89,6 +93,18 @@ export default function App() {
                   />
 
                   <Stack.Screen
+                    name="Profile"
+                    component={ProfileScreen}
+                    options={{ animation: 'slide_from_right' }}
+                  />
+
+                  <Stack.Screen
+                    name="DBViewer"
+                    component={DBViewerScreen}
+                    options={{ animation: 'slide_from_right' }}
+                  />
+
+                  <Stack.Screen
                     name="StoryModal"
                     component={ReadStoryScreen}
                     options={{
@@ -102,6 +118,7 @@ export default function App() {
               </NavigationContainer>
             </View>
           </SafeAreaProvider>
+          </XPProvider>
         </SubscriptionProvider>
       </VocabularyProvider>
     </OnboardingProvider>

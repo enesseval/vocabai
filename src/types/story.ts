@@ -7,11 +7,26 @@ export interface WordAnalysis {
     translation: string;
     explanation: string;
     example: string;
+    type:string;
+    
 }
 
 export interface StorySegment {
     target: string;
     native: string;
+}
+
+export type StoryCategory = 'Mystery' | 'Romance' | 'Adventure' | 'Sci-Fi' | 'Comedy' | 'Drama';
+export type StoryDifficulty = 'Beginner' | 'Intermediate' | 'Advanced';
+
+export interface StoryMetadata {
+    teaser?: string; // 2-sentence hook for home screen
+    category?: StoryCategory;
+    difficulty?: StoryDifficulty;
+    estimatedMinutes?: number;
+    xpReward?: number;
+    imageUrl?: string;
+    emotion?: 'suspenseful' | 'romantic' | 'exciting' | 'thoughtful' | 'funny';
 }
 
 export interface Story {
@@ -24,6 +39,7 @@ export interface Story {
     topicIds: number[];
     level: string;
     vocabulary?: WordAnalysis[]; // Burada kullanılıyor
+    metadata?: StoryMetadata; // New: story metadata for home screen
 }
 
 export interface AIStoryResponse {
