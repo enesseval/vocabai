@@ -14,7 +14,7 @@ interface VocabularyContextType {
     saveWord: (wordData: WordAnalysis) => Promise<void>;
     removeWord: (word: string) => Promise<void>;
     isWordSaved: (word: string) => boolean;
-    initializeDefaultWords: (interests: number[]) => Promise<void>;
+    initializeDefaultWords: (interests: number[], purpose?: string, level?: string) => Promise<void>;
 }
 
 const VocabularyContext = createContext<VocabularyContextType | undefined>(undefined);
@@ -40,7 +40,7 @@ export const VocabularyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
     };
 
-    const initializeDefaultWords = async (interests: number[]) => {
+    const initializeDefaultWords = async (interests: number[], purpose?: string, level?: string) => {
         try {
             // Only initialize if no words exist yet
             if (savedWords.length > 0) {
@@ -48,8 +48,8 @@ export const VocabularyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 return;
             }
 
-            // Get default words based on user interests
-            const defaultWords = getDefaultWordsForInterests(interests);
+            // Get default words based on user profile (interests, purpose, level)
+            const defaultWords = getDefaultWordsForInterests(interests, purpose, level);
 
             // Convert to SavedWord format
             const initialWords: SavedWord[] = defaultWords.map(word => ({
@@ -60,7 +60,7 @@ export const VocabularyProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
             setSavedWords(initialWords);
             await AsyncStorage.setItem('user_vocabulary', JSON.stringify(initialWords));
-            console.log(`Initialized ${initialWords.length} default words based on user interests`);
+            console.log(`✅ Initialized ${initialWords.length} default words (interests: ${interests}, purpose: ${purpose}, level: ${level})`);
         } catch (e) {
             console.error("Default word initialization error", e);
         }

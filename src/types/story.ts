@@ -1,5 +1,10 @@
 // src/types/story.ts
 
+export interface ExampleSentence {
+    original: string;
+    translated: string;
+}
+
 // Eksik olan WordAnalysis geri geldi
 export interface WordAnalysis {
     word: string;
@@ -7,8 +12,14 @@ export interface WordAnalysis {
     translation: string;
     explanation: string;
     example: string;
-    type:string;
-    
+    type: string;
+    phonetic?: string;
+    level?: string;
+    category?: string; // Primary category (tech, art, etc.)
+    topics?: string[]; // Multiple topic tags (tech, business, etc.)
+    purposes?: string[]; // Purpose tags (career, exam, culture, brain)
+    exampleSentences?: ExampleSentence[];
+    relatedWords?: string[]; // İlgili kelimeler (varyasyonlar için)
 }
 
 export interface StorySegment {

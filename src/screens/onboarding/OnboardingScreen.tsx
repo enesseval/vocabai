@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, StyleSheet, Animated, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { View, StyleSheet, Animated, TouchableWithoutFeedback, Keyboard, BackHandler, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -22,6 +22,7 @@ import LanguageStep from './steps/LanguageStep';
 import PurposeStep from './steps/PurposeStep';
 import LevelStep from './steps/LevelStep'; // <--- YENİ IMPORT
 import InterestsStep from './steps/InterestsStep';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function OnboardingScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -31,6 +32,38 @@ export default function OnboardingScreen() {
 
     const [currentStep, setCurrentStep] = useState(1);
     const fadeAnim = useRef(new Animated.Value(1)).current;
+
+    // Handle back button (both iOS header and Android hardware)
+    const handleGoBack = useCallback(() => {
+        if (currentStep > 1) {
+            // Go back to previous step
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true
+            }).start(() => {
+                setCurrentStep(prev => prev - 1);
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 200,
+                    useNativeDriver: true
+                }).start();
+            });
+        } else {
+            // On first step, go back to WelcomeScreen
+            navigation.goBack();
+        }
+    }, [currentStep, fadeAnim, navigation]);
+
+    // Android hardware back button handler
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            handleGoBack();
+            return true; // Prevent default behavior
+        });
+        return () => backHandler.remove();
+    }, [handleGoBack]);
 
     // Başlıkları Yönet (Sıralama Değişti)
     const getHeaderProps = () => {
@@ -107,8 +140,12 @@ export default function OnboardingScreen() {
                 // Save user profile
                 await AsyncStorage.setItem('user_persona', JSON.stringify(userProfile));
 
-                // Initialize 5 default vocabulary words based on user interests
-                await initializeDefaultWords(userProfile.interests);
+                // Initialize 5 default vocabulary words based on user profile
+                await initializeDefaultWords(
+                    userProfile.interests,
+                    userProfile.purpose,
+                    userProfile.level
+                );
 
                 // Navigate to first story
                 navigation.reset({
@@ -142,6 +179,7 @@ export default function OnboardingScreen() {
                     <OnboardingHeader
                         currentStep={currentStep}
                         totalSteps={5} // <--- GÜNCELLENDİ
+                        onBackPress={handleGoBack}
                         {...getHeaderProps()}
                     />
 

@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'; // Dil desteği
 
 import { RootStackParamList } from '../types/navigation';
 import { COLORS, FONTS, SIZES } from '../constants/theme'; // Merkezi Tema
+import { useOnboarding } from '../context/OnboardingContext';
 
 // --- HAREKETLİ TOZ ZERRESİ ---
 // Renkleri global temadan alalım ki tutarlı olsun
@@ -81,6 +82,25 @@ const FloatingParticle = ({ initialTop, left, size, color }: { initialTop: numbe
 export default function WelcomeScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { t } = useTranslation();
+    const { userProfile, isLoading } = useOnboarding();
+
+    // Kullanıcı daha önce onboarding'i tamamlamışsa direkt MainTabs'a git
+    // Sadece isLoading false olduğunda bir kez kontrol et
+    useEffect(() => {
+        if (!isLoading) {
+            // Onboarding TAMAMEN tamamlanmışsa MainTabs'a git
+            // (name, targetLang, nativeLang VE interests dolu olmalı)
+            const isOnboardingComplete =
+                userProfile.name &&
+                userProfile.targetLang &&
+                userProfile.nativeLang &&
+                userProfile.interests.length > 0;
+
+            if (isOnboardingComplete) {
+                navigation.replace('MainTabs');
+            }
+        }
+    }, [isLoading]); // Sadece isLoading değiştiğinde kontrol et
 
     const particles = Array.from({ length: 60 }).map((_, i) => ({
         id: i,

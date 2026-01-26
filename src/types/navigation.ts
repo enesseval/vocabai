@@ -13,5 +13,6 @@ export type RootStackParamList = {
   Progress: undefined;
   Settings: undefined;
   VocabQuiz: undefined;
-  DBViewer:undefined;
+  DBViewer: undefined;
+  WordDetail: { word: string };
 };

@@ -19,6 +19,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import { FONTS } from '../constants/theme';
 import { Story } from '../types/story';
 import { useHeader } from '../navigation/TabNavigator';
+import { WordCard } from '../components/WordCard';
 
 export default function HomeScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -189,33 +190,7 @@ export default function HomeScreen() {
                     {savedWords.length > 0 ? (
                         <View style={styles.wordsGrid}>
                             {savedWords.slice(0, 5).map((word, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    onPress={() => navigation.navigate('WordsTab' as any)}
-                                    activeOpacity={0.7}
-                                    style={styles.wordCardModern}
-                                >
-                                    <BlurView intensity={15} tint="dark" style={styles.wordCardBlur}>
-                                        <View style={styles.wordCardTop}>
-                                            <Text style={styles.wordTextModern} numberOfLines={1}>{word.word}</Text>
-                                            {word.type && (
-                                                <View style={styles.wordTypeBadge}>
-                                                    <Text style={styles.wordTypeText}>
-                                                        {word.type === 'Noun' ? 'N' :
-                                                         word.type === 'Verb' ? 'V' :
-                                                         word.type === 'Adjective' ? 'Adj' :
-                                                         word.type === 'Adverb' ? 'Adv' :
-                                                         word.type === 'Phrase' ? 'P' : word.type.substring(0, 3)}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                        </View>
-                                        <Text style={styles.wordTranslationModern} numberOfLines={1}>{word.translation}</Text>
-                                        <View style={styles.wordCardBottom}>
-                                            <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.3)" />
-                                        </View>
-                                    </BlurView>
-                                </TouchableOpacity>
+                                <WordCard key={index} word={word} />
                             ))}
                         </View>
                     ) : (

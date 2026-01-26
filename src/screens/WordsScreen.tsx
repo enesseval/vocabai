@@ -12,6 +12,7 @@ import { useVocabulary } from '../context/VocabularyContext';
 import { FONTS } from '../constants/theme';
 import * as Haptics from 'expo-haptics';
 import { useHeader } from '../navigation/TabNavigator';
+import { WordCard } from '../components/WordCard';
 
 type SortType = 'date_desc' | 'date_asc' | 'alpha_asc' | 'alpha_desc';
 type FilterType = 'all' | 'Noun' | 'Verb' | 'Adjective' | 'Adverb' | 'Phrase';
@@ -264,36 +265,15 @@ export default function WordsScreen() {
                     </BlurView>
                 ) : (
                     filteredAndSortedWords.map((word, index) => (
-                        <BlurView key={index} intensity={15} tint="dark" style={styles.wordCard}>
-                            <View style={styles.wordLeft}>
-                                <View style={styles.wordHeader}>
-                                    <Text style={styles.wordText}>{word.word}</Text>
-                                    {word.type && (
-                                        <View style={styles.wordTypeBadge}>
-                                            <Text style={styles.wordTypeBadgeText}>
-                                                {word.type === 'Noun' ? 'İsim' :
-                                                 word.type === 'Verb' ? 'Fiil' :
-                                                 word.type === 'Adjective' ? 'Sıfat' :
-                                                 word.type === 'Adverb' ? 'Zarf' :
-                                                 word.type === 'Phrase' ? 'Deyim' : word.type}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </View>
-                                <Text style={styles.wordTranslation}>{word.translation}</Text>
-                                {word.explanation && (
-                                    <Text style={styles.wordExplanation} numberOfLines={2}>
-                                        {word.explanation}
-                                    </Text>
-                                )}
-                            </View>
+                        <View key={index} style={styles.wordCardWrapper}>
+                            <WordCard word={word} />
                             <TouchableOpacity
                                 onPress={() => handleDeleteWord(word.word)}
                                 style={styles.deleteButton}
                             >
                                 <Ionicons name="trash-outline" size={20} color="#ef4444" />
                             </TouchableOpacity>
-                        </BlurView>
+                        </View>
                     ))
                 )}
             </ScrollView>
@@ -305,6 +285,23 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#000',
+    },
+    wordCardWrapper: {
+        position: 'relative',
+        marginBottom: 12,
+    },
+    deleteButton: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(239, 68, 68, 0.3)',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     headerTitle: {
         color: '#fff',

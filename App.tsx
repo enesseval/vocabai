@@ -24,6 +24,7 @@ import PostStoryQuizScreen from './src/screens/PostStoryQuizScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import DBViewerScreen from './src/screens/DBViewerScreen';
+import WordDetailScreen from './src/screens/WordDetailScreen';
 import TabNavigator from './src/navigation/TabNavigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -107,6 +108,16 @@ export default function App() {
                   <Stack.Screen
                     name="StoryModal"
                     component={ReadStoryScreen}
+                    options={{
+                      presentation: 'transparentModal',
+                      animation: 'fade',
+                      headerShown: false,
+                    }}
+                  />
+
+                  <Stack.Screen
+                    name="WordDetail"
+                    component={WordDetailScreen}
                     options={{
                       presentation: 'transparentModal',
                       animation: 'fade',

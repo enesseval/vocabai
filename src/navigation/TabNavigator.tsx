@@ -6,7 +6,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import HomeScreen from '../screens/HomeScreen';
 import StoriesScreen from '../screens/StoriesScreen';
@@ -14,7 +13,6 @@ import ProgressScreen from '../screens/ProgressScreen';
 import WordsScreen from '../screens/WordsScreen';
 import CustomTabBar from '../components/CustomTabBar';
 import { RootStackParamList } from '../types/navigation';
-import { FONTS } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
 
@@ -50,10 +48,7 @@ function GlobalHeader({ children }: { children: ReactNode }) {
                 <View style={styles.headerBackground} />
 
                 {/* Blur Effect */}
-                 <BlurView intensity={40} tint="dark" style={[styles.headerBlur,{height:insets.top + 65}]} /> 
-
-                {/* Bottom Border */}
-                <View style={styles.headerBorder} />
+                 <BlurView intensity={40} tint="dark" style={[styles.headerBlur,{height:insets.top + 50}]} /> 
 
                 {/* Header Content */}
                 <View style={styles.headerContent}>
@@ -65,7 +60,7 @@ function GlobalHeader({ children }: { children: ReactNode }) {
                         activeOpacity={0.8}
                     >
                         <BlurView intensity={30} tint="dark" style={styles.profileButton}>
-                            <Ionicons name="person-circle" size={28} color="#fbbf24" />
+                            <Ionicons name="person-circle" size={20} color="#fbbf24" />
                         </BlurView>
                     </TouchableOpacity>
                 </View>
@@ -83,7 +78,9 @@ export default function TabNavigator() {
                 screenOptions={{
                     headerShown: false,
                     tabBarShowLabel: false,
+                    
                 }}
+                
             >
                 <Tab.Screen
                     name="HomeTab"
@@ -141,14 +138,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
     },
-    headerBorder: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    },
     headerContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -161,8 +150,8 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     profileButton: {
-        width: 48,
-        height: 48,
+        width: 36,
+        height: 36,
         borderRadius: 24,
         backgroundColor: 'rgba(0,0,0,0.4)',
         borderWidth: 1,

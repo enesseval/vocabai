@@ -25,6 +25,7 @@ import { Story } from '../types/story';
 
 import { useStoryAudio } from '../hooks/useStoryAudio';
 import { useWordInteraction } from '../hooks/useWordInteraction';
+import { generateDailyStory } from '../services/aiService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -164,7 +165,23 @@ export default function ReadStoryScreen() {
 
         const loadContent = async () => {
             if (initialStory) return;
-            setTimeout(() => { setStory(MOCK_STORY); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); setIsGenerating(false); }, 800);
+
+            try {
+                setIsGenerating(true);
+
+                // Generate story from Supabase AI function
+                const generatedStory = await generateDailyStory(userProfile);
+
+                setStory(generatedStory);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (error) {
+                console.error('Failed to generate story:', error);
+                // Fallback to mock story if generation fails
+                setStory(MOCK_STORY);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            } finally {
+                setIsGenerating(false);
+            }
         };
         loadContent();
 

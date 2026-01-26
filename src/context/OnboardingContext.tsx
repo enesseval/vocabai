@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface UserProfile {
     name: string;
@@ -14,6 +15,7 @@ interface OnboardingContextType {
     userProfile: UserProfile;
     updateProfile: (data: Partial<UserProfile>) => void;
     resetProfile: () => void;
+    isLoading: boolean;
 }
 
 const defaultProfile: UserProfile = {
@@ -26,21 +28,55 @@ const defaultProfile: UserProfile = {
     level: 'Intermediate',
 };
 
+const STORAGE_KEY = '@user_profile';
+
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
     const [userProfile, setUserProfile] = useState<UserProfile>(defaultProfile);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const updateProfile = (data: Partial<UserProfile>) => {
-        setUserProfile((prev) => ({ ...prev, ...data }));
+    // Uygulama açılışında AsyncStorage'dan verileri yükle
+    useEffect(() => {
+        loadProfile();
+    }, []);
+
+    const loadProfile = async () => {
+        try {
+            const stored = await AsyncStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                setUserProfile(JSON.parse(stored));
+            }
+        } catch (error) {
+            console.error('Failed to load user profile:', error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const resetProfile = () => {
+    const updateProfile = async (data: Partial<UserProfile>) => {
+        const updated = { ...userProfile, ...data };
+        setUserProfile(updated);
+
+        // AsyncStorage'a kaydet
+        try {
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        } catch (error) {
+            console.error('Failed to save user profile:', error);
+        }
+    };
+
+    const resetProfile = async () => {
         setUserProfile(defaultProfile);
+        try {
+            await AsyncStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+            console.error('Failed to reset user profile:', error);
+        }
     };
 
     return (
-        <OnboardingContext.Provider value={{ userProfile, updateProfile, resetProfile }}>
+        <OnboardingContext.Provider value={{ userProfile, updateProfile, resetProfile, isLoading }}>
             {children}
         </OnboardingContext.Provider>
     );
