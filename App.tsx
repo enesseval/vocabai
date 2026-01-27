@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
@@ -58,11 +59,12 @@ export default function App() {
   }
 
   return (
-    <OnboardingProvider>
-      <VocabularyProvider>
-        <SubscriptionProvider>
-          <XPProvider>
-            <SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <OnboardingProvider>
+        <VocabularyProvider>
+          <SubscriptionProvider>
+            <XPProvider>
+              <SafeAreaProvider>
             {/* Layout yüklendiği an Native Splash gidecek, alttaki WelcomeScreen görünecek */}
             <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
               <NavigationContainer>
@@ -128,10 +130,11 @@ export default function App() {
                 </Stack.Navigator>
               </NavigationContainer>
             </View>
-          </SafeAreaProvider>
-          </XPProvider>
-        </SubscriptionProvider>
-      </VocabularyProvider>
-    </OnboardingProvider>
+            </SafeAreaProvider>
+            </XPProvider>
+          </SubscriptionProvider>
+        </VocabularyProvider>
+      </OnboardingProvider>
+    </GestureHandlerRootView>
   );
 }
