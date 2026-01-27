@@ -2,24 +2,71 @@
 // AI Service - Entry point for story generation
 
 import { UserProfile } from '../context/OnboardingContext';
-import { Story, WordAnalysis, StoryGenerationResult } from '../types/story';
+import { Story, WordAnalysis, StoryGenerationResult, StoryQuiz } from '../types/story';
 import {
   generateCompleteStory,
-  generateDailyStoryLegacy
+  generateStoryProgressive,
+  ProgressiveStoryResult
 } from './storyGenerationService';
+import { LearningAnalytics } from '../utils/learningAnalytics';
 
 // ═══════════════════════════════════════════════════════════════
-// NEW API: Complete Story Generation with Quiz & Analytics
+// PROGRESSIVE API: Story hemen, Quiz arka planda (ÖNERİLEN)
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Generate story with progressive loading - story returns immediately,
+ * quiz loads in background while user reads the story.
+ *
+ * Usage:
+ * ```typescript
+ * const { story, analytics, quizPromise } = await generateStoryFast(profile, grammar, words);
+ *
+ * // Hikayeyi hemen göster
+ * navigation.navigate('ReadStory', { story, analytics });
+ *
+ * // Quiz ekranına geçerken await et
+ * const quiz = await quizPromise;
+ * navigation.navigate('Quiz', { quiz });
+ * ```
+ */
+export const generateStoryFast = async (
+  profile: UserProfile,
+  grammarFocus: string = 'General',
+  reviewWords: WordAnalysis[] = []
+): Promise<{
+  story: Story;
+  analytics: LearningAnalytics;
+  quizPromise: Promise<StoryQuiz>;
+}> => {
+  try {
+    console.log(`📡 AI Service (Fast): Generating story...`);
+    console.log(`   Grammar Focus: [${grammarFocus}]`);
+    console.log(`   Review Words: [${reviewWords.length} items]`);
+
+    const result = await generateStoryProgressive(profile, grammarFocus, reviewWords);
+
+    console.log(`✅ AI Service (Fast): Story ready!`);
+    console.log(`   Title: "${result.story.title}"`);
+    console.log(`   Quiz: Loading in background...`);
+
+    return result;
+
+  } catch (error) {
+    console.error('❌ AI Service Error:', error);
+    throw error;
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// BLOCKING API: Story + Quiz birlikte (eski davranış)
 // ═══════════════════════════════════════════════════════════════
 
 /**
  * Generate a complete story with quiz, analytics, and quality metrics
- * This is the recommended method for new implementations
+ * Waits for both story and quiz before returning.
  *
- * @param profile - User profile from onboarding
- * @param grammarFocus - Grammar topic to focus on (e.g., "Past Simple")
- * @param reviewWords - Previously learned words for spaced repetition
- * @returns Complete generation result with story, quiz, analytics, and quality
+ * Use generateStoryFast for better UX.
  */
 export const generateStoryWithQuiz = async (
   profile: UserProfile,
@@ -95,4 +142,5 @@ export const generateDailyStory = async (
 // UTILITY EXPORTS
 // ═══════════════════════════════════════════════════════════════
 
-export { generateCompleteStory } from './storyGenerationService';
+export { generateCompleteStory, generateStoryProgressive } from './storyGenerationService';
+export type { ProgressiveStoryResult } from './storyGenerationService';
