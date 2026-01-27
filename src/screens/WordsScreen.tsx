@@ -1,13 +1,24 @@
-// src/screens/WordsScreen.tsx - Simple Words List
+// src/screens/WordsScreen.tsx - Words List with Swipe to Delete
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    TextInput,
+    Alert,
+    FlatList,
+    Animated,
+    Dimensions
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { useVocabulary } from '../context/VocabularyContext';
 import { FONTS } from '../constants/theme';
 import * as Haptics from 'expo-haptics';
@@ -17,10 +28,13 @@ import { WordCard } from '../components/WordCard';
 type SortType = 'date_desc' | 'date_asc' | 'alpha_asc' | 'alpha_desc';
 type FilterType = 'all' | 'Noun' | 'Verb' | 'Adjective' | 'Adverb' | 'Phrase';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 export default function WordsScreen() {
     const insets = useSafeAreaInsets();
     const { savedWords, removeWord } = useVocabulary();
     const { setHeaderLeft } = useHeader();
+    const swipeableRefs = useRef<Map<string, Swipeable>>(new Map());
 
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState<SortType>('date_desc');
@@ -77,18 +91,73 @@ export default function WordsScreen() {
     );
 
     const handleDeleteWord = async (word: string) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        Alert.alert(
-            'Kelimeyi Sil',
-            `"${word}" kelimesini silmek istediğinden emin misin?`,
-            [
-                { text: 'İptal', style: 'cancel' },
-                {
-                    text: 'Sil',
-                    style: 'destructive',
-                    onPress: async () => await removeWord(word)
-                }
-            ]
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        await removeWord(word);
+    };
+
+    const closeAllSwipeables = (exceptKey?: string) => {
+        swipeableRefs.current.forEach((ref, key) => {
+            if (key !== exceptKey && ref) {
+                ref.close();
+            }
+        });
+    };
+
+    const renderRightActions = (
+        progress: Animated.AnimatedInterpolation<number>,
+        dragX: Animated.AnimatedInterpolation<number>,
+        word: string
+    ) => {
+        const translateX = dragX.interpolate({
+            inputRange: [-100, 0],
+            outputRange: [0, 100],
+            extrapolate: 'clamp',
+        });
+
+        const opacity = dragX.interpolate({
+            inputRange: [-100, -50, 0],
+            outputRange: [1, 0.8, 0],
+            extrapolate: 'clamp',
+        });
+
+        return (
+            <Animated.View
+                style={[
+                    styles.deleteAction,
+                    {
+                        transform: [{ translateX }],
+                        opacity,
+                    },
+                ]}
+            >
+                <TouchableOpacity
+                    style={styles.deleteActionButton}
+                    onPress={() => {
+                        Alert.alert(
+                            'Kelimeyi Sil',
+                            `"${word}" kelimesini silmek istediğinden emin misin?`,
+                            [
+                                {
+                                    text: 'İptal',
+                                    style: 'cancel',
+                                    onPress: () => {
+                                        const ref = swipeableRefs.current.get(word);
+                                        ref?.close();
+                                    }
+                                },
+                                {
+                                    text: 'Sil',
+                                    style: 'destructive',
+                                    onPress: () => handleDeleteWord(word)
+                                }
+                            ]
+                        );
+                    }}
+                >
+                    <Ionicons name="trash-outline" size={24} color="#fff" />
+                    <Text style={styles.deleteActionText}>Sil</Text>
+                </TouchableOpacity>
+            </Animated.View>
         );
     };
 
@@ -107,6 +176,139 @@ export default function WordsScreen() {
         return savedWords.filter(w => w.type === type).length;
     };
 
+    const renderWordItem = ({ item: word, index }: { item: any; index: number }) => (
+        <Swipeable
+            ref={(ref) => {
+                if (ref) {
+                    swipeableRefs.current.set(word.word, ref);
+                }
+            }}
+            renderRightActions={(progress, dragX) =>
+                renderRightActions(progress, dragX, word.word)
+            }
+            onSwipeableWillOpen={() => closeAllSwipeables(word.word)}
+            friction={2}
+            rightThreshold={40}
+            overshootRight={false}
+        >
+            <View style={styles.wordCardWrapper}>
+                <WordCard word={word} />
+            </View>
+        </Swipeable>
+    );
+
+    const ListHeaderComponent = () => (
+        <>
+            {/* Filters Panel */}
+            {showFilters && (
+                <BlurView intensity={15} tint="dark" style={styles.filtersPanel}>
+                    {/* Sort Options */}
+                    <View style={styles.filterSection}>
+                        <Text style={styles.filterLabel}>Sırala</Text>
+                        <View style={styles.sortButtons}>
+                            {[
+                                { value: 'date_desc' as SortType, icon: 'calendar', label: 'En Yeni' },
+                                { value: 'date_asc' as SortType, icon: 'calendar-outline', label: 'En Eski' },
+                                { value: 'alpha_asc' as SortType, icon: 'text', label: 'A-Z' },
+                                { value: 'alpha_desc' as SortType, icon: 'text-outline', label: 'Z-A' },
+                            ].map((option) => (
+                                <TouchableOpacity
+                                    key={option.value}
+                                    onPress={() => {
+                                        setSortBy(option.value);
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    }}
+                                    style={[styles.sortButton, sortBy === option.value && styles.sortButtonActive]}
+                                >
+                                    <Ionicons
+                                        name={option.icon as any}
+                                        size={16}
+                                        color={sortBy === option.value ? '#fbbf24' : 'rgba(255,255,255,0.6)'}
+                                    />
+                                    <Text style={[styles.sortButtonText, sortBy === option.value && styles.sortButtonTextActive]}>
+                                        {option.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Divider */}
+                    <View style={styles.divider} />
+
+                    {/* Type Filters */}
+                    <View style={styles.filterSection}>
+                        <Text style={styles.filterLabel}>Tür ({savedWords.length})</Text>
+                        <View style={styles.typeFilters}>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setFilterType('all');
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                }}
+                                style={[styles.typeButton, filterType === 'all' && styles.typeButtonActive]}
+                            >
+                                <Text style={[styles.typeButtonText, filterType === 'all' && styles.typeButtonTextActive]}>
+                                    Tümü <Text style={styles.typeCount}>({getFilterCount('all')})</Text>
+                                </Text>
+                            </TouchableOpacity>
+
+                            {(['Noun', 'Verb', 'Adjective', 'Adverb', 'Phrase'] as FilterType[])
+                                .filter(type => getFilterCount(type) > 0)
+                                .map((type) => (
+                                    <TouchableOpacity
+                                        key={type}
+                                        onPress={() => {
+                                            setFilterType(type);
+                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                        }}
+                                        style={[styles.typeButton, filterType === type && styles.typeButtonActive]}
+                                    >
+                                        <Text style={[styles.typeButtonText, filterType === type && styles.typeButtonTextActive]}>
+                                            {type === 'Noun' ? 'İsim' :
+                                                type === 'Verb' ? 'Fiil' :
+                                                    type === 'Adjective' ? 'Sıfat' :
+                                                        type === 'Adverb' ? 'Zarf' :
+                                                            type === 'Phrase' ? 'Deyim' : type}{' '}
+                                            <Text style={styles.typeCount}>({getFilterCount(type)})</Text>
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                        </View>
+                    </View>
+                </BlurView>
+            )}
+        </>
+    );
+
+    const ListEmptyComponent = () => (
+        savedWords.length === 0 ? (
+            <BlurView intensity={15} tint="dark" style={styles.emptyState}>
+                <Ionicons name="book-outline" size={64} color="rgba(255,255,255,0.3)" />
+                <Text style={styles.emptyTitle}>Henüz kelime eklemedin</Text>
+                <Text style={styles.emptySubtitle}>
+                    Hikaye okurken kelimelere dokun ve kaydet
+                </Text>
+            </BlurView>
+        ) : (
+            <BlurView intensity={15} tint="dark" style={styles.emptyState}>
+                <Ionicons name="search-outline" size={64} color="rgba(255,255,255,0.3)" />
+                <Text style={styles.emptyTitle}>Sonuç bulunamadı</Text>
+                <Text style={styles.emptySubtitle}>
+                    Farklı bir arama terimi dene
+                </Text>
+                <TouchableOpacity
+                    onPress={() => {
+                        setSearchQuery('');
+                        setFilterType('all');
+                    }}
+                    style={styles.clearFiltersButton}
+                >
+                    <Text style={styles.clearFiltersText}>Filtreleri Temizle</Text>
+                </TouchableOpacity>
+            </BlurView>
+        )
+    );
+
     return (
         <View style={styles.container}>
             <StatusBar style="light" />
@@ -115,15 +317,8 @@ export default function WordsScreen() {
                 style={StyleSheet.absoluteFill}
             />
 
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={[
-                    styles.scrollContent,
-                    { paddingTop: insets.top + 70, paddingBottom: insets.bottom + 100 }
-                ]}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Search & Filter Controls */}
+            {/* Sticky Search & Filter Controls */}
+            <View style={[styles.stickyHeader, { paddingTop: insets.top + 70 }]}>
                 <View style={styles.controlsSection}>
                     {/* Search Bar */}
                     <View style={styles.searchContainer}>
@@ -158,125 +353,28 @@ export default function WordsScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Filters Panel */}
-                {showFilters && (
-                    <BlurView intensity={15} tint="dark" style={styles.filtersPanel}>
-                        {/* Sort Options */}
-                        <View style={styles.filterSection}>
-                            <Text style={styles.filterLabel}>Sırala</Text>
-                            <View style={styles.sortButtons}>
-                                {[
-                                    { value: 'date_desc' as SortType, icon: 'calendar', label: 'En Yeni' },
-                                    { value: 'date_asc' as SortType, icon: 'calendar-outline', label: 'En Eski' },
-                                    { value: 'alpha_asc' as SortType, icon: 'text', label: 'A-Z' },
-                                    { value: 'alpha_desc' as SortType, icon: 'text-outline', label: 'Z-A' },
-                                ].map((option) => (
-                                    <TouchableOpacity
-                                        key={option.value}
-                                        onPress={() => {
-                                            setSortBy(option.value);
-                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                        }}
-                                        style={[styles.sortButton, sortBy === option.value && styles.sortButtonActive]}
-                                    >
-                                        <Ionicons
-                                            name={option.icon as any}
-                                            size={16}
-                                            color={sortBy === option.value ? '#fbbf24' : 'rgba(255,255,255,0.6)'}
-                                        />
-                                        <Text style={[styles.sortButtonText, sortBy === option.value && styles.sortButtonTextActive]}>
-                                            {option.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        {/* Divider */}
-                        <View style={styles.divider} />
-
-                        {/* Type Filters */}
-                        <View style={styles.filterSection}>
-                            <Text style={styles.filterLabel}>Tür ({savedWords.length})</Text>
-                            <View style={styles.typeFilters}>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setFilterType('all');
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                    }}
-                                    style={[styles.typeButton, filterType === 'all' && styles.typeButtonActive]}
-                                >
-                                    <Text style={[styles.typeButtonText, filterType === 'all' && styles.typeButtonTextActive]}>
-                                        Tümü <Text style={styles.typeCount}>({getFilterCount('all')})</Text>
-                                    </Text>
-                                </TouchableOpacity>
-
-                                {(['Noun', 'Verb', 'Adjective', 'Adverb', 'Phrase'] as FilterType[])
-                                    .filter(type => getFilterCount(type) > 0)
-                                    .map((type) => (
-                                        <TouchableOpacity
-                                            key={type}
-                                            onPress={() => {
-                                                setFilterType(type);
-                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                            }}
-                                            style={[styles.typeButton, filterType === type && styles.typeButtonActive]}
-                                        >
-                                            <Text style={[styles.typeButtonText, filterType === type && styles.typeButtonTextActive]}>
-                                                {type === 'Noun' ? 'İsim' :
-                                                 type === 'Verb' ? 'Fiil' :
-                                                 type === 'Adjective' ? 'Sıfat' :
-                                                 type === 'Adverb' ? 'Zarf' :
-                                                 type === 'Phrase' ? 'Deyim' : type}{' '}
-                                                <Text style={styles.typeCount}>({getFilterCount(type)})</Text>
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                            </View>
-                        </View>
-                    </BlurView>
+                {/* Swipe hint */}
+                {filteredAndSortedWords.length > 0 && (
+                    <Text style={styles.swipeHint}>
+                        <Ionicons name="arrow-back" size={12} color="rgba(255,255,255,0.4)" /> Silmek için sola kaydır
+                    </Text>
                 )}
+            </View>
 
-                {/* Word List */}
-                {savedWords.length === 0 ? (
-                    <BlurView intensity={15} tint="dark" style={styles.emptyState}>
-                        <Ionicons name="book-outline" size={64} color="rgba(255,255,255,0.3)" />
-                        <Text style={styles.emptyTitle}>Henüz kelime eklemedin</Text>
-                        <Text style={styles.emptySubtitle}>
-                            Hikaye okurken kelimelere dokun ve kaydet
-                        </Text>
-                    </BlurView>
-                ) : filteredAndSortedWords.length === 0 ? (
-                    <BlurView intensity={15} tint="dark" style={styles.emptyState}>
-                        <Ionicons name="search-outline" size={64} color="rgba(255,255,255,0.3)" />
-                        <Text style={styles.emptyTitle}>Sonuç bulunamadı</Text>
-                        <Text style={styles.emptySubtitle}>
-                            Farklı bir arama terimi dene
-                        </Text>
-                        <TouchableOpacity
-                            onPress={() => {
-                                setSearchQuery('');
-                                setFilterType('all');
-                            }}
-                            style={styles.clearFiltersButton}
-                        >
-                            <Text style={styles.clearFiltersText}>Filtreleri Temizle</Text>
-                        </TouchableOpacity>
-                    </BlurView>
-                ) : (
-                    filteredAndSortedWords.map((word, index) => (
-                        <View key={index} style={styles.wordCardWrapper}>
-                            <WordCard word={word} />
-                            <TouchableOpacity
-                                onPress={() => handleDeleteWord(word.word)}
-                                style={styles.deleteButton}
-                            >
-                                <Ionicons name="trash-outline" size={20} color="#ef4444" />
-                            </TouchableOpacity>
-                        </View>
-                    ))
-                )}
-            </ScrollView>
+            {/* Word List */}
+            <FlatList
+                data={filteredAndSortedWords}
+                renderItem={renderWordItem}
+                keyExtractor={(item) => item.word}
+                ListHeaderComponent={ListHeaderComponent}
+                ListEmptyComponent={ListEmptyComponent}
+                contentContainerStyle={[
+                    styles.listContent,
+                    { paddingBottom: insets.bottom + 100 }
+                ]}
+                showsVerticalScrollIndicator={false}
+                ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            />
         </View>
     );
 }
@@ -286,22 +384,13 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
     },
-    wordCardWrapper: {
-        position: 'relative',
-        marginBottom: 12,
+    stickyHeader: {
+        paddingHorizontal: 24,
+        paddingBottom: 8,
+        backgroundColor: 'transparent',
     },
-    deleteButton: {
-        position: 'absolute',
-        top: 12,
-        right: 12,
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        borderWidth: 1,
-        borderColor: 'rgba(239, 68, 68, 0.3)',
-        alignItems: 'center',
-        justifyContent: 'center',
+    wordCardWrapper: {
+        marginHorizontal: 24,
     },
     headerTitle: {
         color: '#fff',
@@ -314,17 +403,13 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontFamily: FONTS.semiBold,
     },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingHorizontal: 24,
-        gap: 12,
+    listContent: {
+        paddingTop: 8,
     },
     controlsSection: {
         flexDirection: 'row',
         gap: 12,
-        marginBottom: 16,
+        marginBottom: 8,
     },
     searchContainer: {
         flex: 1,
@@ -364,12 +449,20 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(251, 189, 35, 0.1)',
         borderColor: 'rgba(251, 189, 35, 0.3)',
     },
+    swipeHint: {
+        color: 'rgba(255,255,255,0.4)',
+        fontSize: 12,
+        fontFamily: FONTS.regular,
+        textAlign: 'center',
+        marginTop: 4,
+    },
     filtersPanel: {
         backgroundColor: 'rgba(255,255,255,0.05)',
         borderRadius: 16,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
         padding: 16,
+        marginHorizontal: 24,
         marginBottom: 16,
         overflow: 'hidden',
     },
@@ -445,63 +538,26 @@ const styles = StyleSheet.create({
         fontSize: 11,
         opacity: 0.6,
     },
-    wordCard: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+    deleteAction: {
+        backgroundColor: '#ef4444',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        marginRight: 24,
         borderRadius: 16,
-        padding: 16,
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 16,
-        overflow: 'hidden',
+        marginLeft: -20,
     },
-    wordLeft: {
-        flex: 1,
-    },
-    wordHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 4,
-        flexWrap: 'wrap',
-    },
-    wordText: {
-        color: '#fff',
-        fontSize: 17,
-        fontFamily: FONTS.bold,
-    },
-    wordTypeBadge: {
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 6,
-    },
-    wordTypeBadgeText: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 11,
-        fontFamily: FONTS.semiBold,
-        textTransform: 'uppercase',
-    },
-    wordTranslation: {
-        color: '#fbbf24',
-        fontSize: 14,
-        fontFamily: FONTS.semiBold,
-        marginBottom: 8,
-    },
-    wordExplanation: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 13,
-        fontFamily: FONTS.regular,
-        lineHeight: 18,
-    },
-    deleteButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    deleteActionButton: {
+        width: 80,
+        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+        paddingRight: 8,
+    },
+    deleteActionText: {
+        color: '#fff',
+        fontSize: 12,
+        fontFamily: FONTS.semiBold,
+        marginTop: 4,
     },
     emptyState: {
         backgroundColor: 'rgba(255,255,255,0.05)',
@@ -511,6 +567,7 @@ const styles = StyleSheet.create({
         padding: 60,
         alignItems: 'center',
         marginTop: 40,
+        marginHorizontal: 24,
         overflow: 'hidden',
     },
     emptyTitle: {
