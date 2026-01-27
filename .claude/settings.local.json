@@ -6,7 +6,9 @@
       "Bash(git checkout:*)",
       "Bash(node -e:*)",
       "Bash(npx expo start:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)"
     ]
   }
 }

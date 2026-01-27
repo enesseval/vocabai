@@ -13,6 +13,8 @@ import { FONTS } from '../constants/theme';
 import * as Haptics from 'expo-haptics';
 import { useHeader } from '../navigation/TabNavigator';
 import { WordCard } from '../components/WordCard';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 type SortType = 'date_desc' | 'date_asc' | 'alpha_asc' | 'alpha_desc';
 type FilterType = 'all' | 'Noun' | 'Verb' | 'Adjective' | 'Adverb' | 'Phrase';
@@ -108,22 +110,15 @@ export default function WordsScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <GestureHandlerRootView style={styles.container}>
             <StatusBar style="light" />
             <LinearGradient
                 colors={['#1e1b4b', '#0f172a', '#000000']}
                 style={StyleSheet.absoluteFill}
             />
 
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={[
-                    styles.scrollContent,
-                    { paddingTop: insets.top + 70, paddingBottom: insets.bottom + 100 }
-                ]}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Search & Filter Controls */}
+            {/* Search & Filter Controls - Sticky */}
+            <BlurView intensity={40} tint="dark" style={{ position: 'absolute', top: insets.top + 50, left: 0, right: 0, zIndex: 1000, paddingHorizontal: 12, borderTopColor:"rgba(255,255,255,1)",borderTopWidth:0.7, paddingTop:12 }}>
                 <View style={styles.controlsSection}>
                     {/* Search Bar */}
                     <View style={styles.searchContainer}>
@@ -236,7 +231,16 @@ export default function WordsScreen() {
                         </View>
                     </BlurView>
                 )}
+            </BlurView>
 
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingTop: insets.top + 15 + 120, paddingBottom: insets.bottom + 100 }
+                ]}
+                showsVerticalScrollIndicator={false}
+            >
                 {/* Word List */}
                 {savedWords.length === 0 ? (
                     <BlurView intensity={15} tint="dark" style={styles.emptyState}>
@@ -265,18 +269,28 @@ export default function WordsScreen() {
                     </BlurView>
                 ) : (
                     filteredAndSortedWords.map((word, index) => (
-                        <View key={index} style={styles.wordCardWrapper}>
-                            <WordCard word={word} />
-                            <TouchableOpacity
-                                onPress={() => handleDeleteWord(word.word)}
-                                style={styles.deleteButton}
-                            >
-                            </TouchableOpacity>
-                        </View>
+                        <Swipeable
+                            key={index}
+                            renderRightActions={() => (
+                                <View style={{ marginLeft: 8 }}>
+                                    <TouchableOpacity
+                                        onPress={() => handleDeleteWord(word.word)}
+                                        style={styles.deleteButton}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Ionicons name="trash" size={24} color="#fff" />
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        >
+                            <View style={styles.wordCardWrapper}>
+                                <WordCard word={word} />
+                            </View>
+                        </Swipeable>
                     ))
                 )}
             </ScrollView>
-        </View>
+        </GestureHandlerRootView>
     );
 }
 
@@ -290,17 +304,12 @@ const styles = StyleSheet.create({
         marginBottom: 0,
     },
     deleteButton: {
-        position: 'absolute',
-        top: 12,
-        right: 12,
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        borderWidth: 1,
-        borderColor: 'rgba(239, 68, 68, 0.3)',
-        alignItems: 'center',
+        backgroundColor: '#EF4444',
         justifyContent: 'center',
+        alignItems: 'center',
+        width: 100,
+        height: '100%',
+        borderRadius: 20,
     },
     headerTitle: {
         color: '#fff',
@@ -364,7 +373,7 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(251, 189, 35, 0.3)',
     },
     filtersPanel: {
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: 'rgba(255,255,255,0.01)',
         borderRadius: 16,
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
