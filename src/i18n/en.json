@@ -94,6 +94,7 @@
         "benefit1": "Unlimited AI Stories",
         "benefit2": "Advanced Quiz System",
         "benefit3": "Detailed Progress Analytics",
+        "benefit4": "Offline Learning Mode",
         "choosePlan": "Choose Your Plan",
         "planWeekly": "Weekly",
         "planMonthly": "Monthly",
@@ -106,6 +107,119 @@
         "cancelAnytime": "Cancel anytime",
         "users": "100K+ users",
         "startLearning": "Start Learning",
-        "restore": "Restore Purchases"
+        "restore": "Restore Purchases",
+        "headline": "7-Day Free Trial",
+        "subheadline": "Full access to all premium features",
+        "ctaButton": "Start My Free Week",
+        "ratingText": "Join {{count}} happy language learners",
+        "freeTrial": "7-day free trial",
+        "cancelAnytime": "Cancel Anytime",
+        "securePayment": "Secure Payment",
+        "billedAnnually": "Billed annually",
+        "billedMonthly": "Billed monthly",
+        "legalText": "By subscribing, you agree to our Terms and Privacy Policy. Subscription renews automatically unless canceled."
+    },
+    "home": {
+        "greeting": {
+            "morning": "Good morning",
+            "afternoon": "Good afternoon",
+            "evening": "Good evening"
+        },
+        "xp": {
+            "level": "Level {{level}}",
+            "progress": "{{current}}/{{target}} XP",
+            "rank": "{{rank}}"
+        },
+        "story": {
+            "continue": "Continue Story",
+            "start": "Start Story",
+            "xpReward": "+{{amount}} XP",
+            "estimatedTime": "{{mins}} min",
+            "difficulty": {
+                "Beginner": "Beginner",
+                "Intermediate": "Intermediate",
+                "Advanced": "Advanced"
+            },
+            "category": {
+                "Mystery": "Mystery",
+                "Romance": "Romance",
+                "Adventure": "Adventure",
+                "Sci-Fi": "Sci-Fi",
+                "Comedy": "Comedy",
+                "Drama": "Drama"
+            }
+        },
+        "journey": {
+            "title": "Your Journey",
+            "storiesRead": "Stories",
+            "wordsLearned": "Words",
+            "rank": "Rank"
+        },
+        "achievement": {
+            "latest": "Latest Achievement",
+            "unlocked": "Unlocked!"
+        },
+        "quickActions": {
+            "review": "Review",
+            "quiz": "Quiz",
+            "library": "Library"
+        },
+        "quiz": {
+            "title": "Vocabulary Quiz",
+            "titleLocked": "Quiz Locked",
+            "subtitle": "Test {{count}} words you've learned",
+            "subtitleLocked": "Learn at least 5 words to unlock",
+            "xpReward": "+30 XP"
+        },
+        "recentStories": {
+            "title": "Continue Reading",
+            "seeAll": "See All Stories",
+            "emptyTitle": "No stories yet",
+            "emptySubtitle": "Start reading to see your recent stories here"
+        },
+        "unlockQuiz": {
+            "title": "How to unlock Quiz",
+            "description": "Read stories and save at least 5 words to start taking quizzes. You currently have {{count}}/5 words."
+        },
+        "readyToTest": "Ready to test your knowledge?",
+        "loading": "Generating your story...",
+        "emptyState": {
+            "title": "No stories yet!",
+            "subtitle": "We're generating your first story..."
+        }
+    },
+    "achievements": {
+        "firstStory": {
+            "title": "First Steps",
+            "description": "Complete your first story"
+        },
+        "storyCollector": {
+            "title": "Story Collector",
+            "description": "Read 10 stories"
+        },
+        "bookworm": {
+            "title": "Bookworm",
+            "description": "Read 50 stories"
+        },
+        "wordLearner": {
+            "title": "Word Learner",
+            "description": "Save 50 words"
+        },
+        "vocabularyMaster": {
+            "title": "Vocabulary Master",
+            "description": "Save 200 words"
+        },
+        "quizChampion": {
+            "title": "Quiz Champion",
+            "description": "Get 100% on 5 quizzes"
+        },
+        "intermediateLevel": {
+            "title": "Rising Star",
+            "description": "Reach B1 level"
+        },
+        "advancedLevel": {
+            "title": "Language Expert",
+            "description": "Reach C1 level"
+        }
     }
 }

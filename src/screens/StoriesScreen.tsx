@@ -3,22 +3,36 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native'; // Ekran odaklanınca yenilemek için
-
+import { useHeader } from '../navigation/TabNavigator';
 import { COLORS, FONTS } from '../constants/theme';
 import { Story } from '../types/story';
 
 export default function StoriesScreen({ navigation }: any) {
     const [history, setHistory] = useState<Story[]>([]);
+    const { setHeaderLeft } = useHeader();
+    const insets = useSafeAreaInsets();
 
     // Sayfaya her gelindiğinde listeyi yenile (Yeni hikaye eklendiyse gör)
     useFocusEffect(
         useCallback(() => {
             loadHistory();
         }, [])
+    );
+
+    // Header'ı her focus'ta güncelle
+    useFocusEffect(
+        useCallback(() => {
+            setHeaderLeft(
+                <View>
+                    <Text style={styles.headerTitle}>Hikayeler</Text>
+                    <Text style={styles.headerCount}>{history.length} hikaye</Text>
+                </View>
+            );
+        }, [history.length, setHeaderLeft])
     );
 
     const loadHistory = async () => {
@@ -61,30 +75,26 @@ export default function StoriesScreen({ navigation }: any) {
     return (
         <View style={styles.container}>
             <LinearGradient colors={['#1e1b4b', '#000']} style={StyleSheet.absoluteFill} />
-            <SafeAreaView style={{ flex: 1 }}>
 
-                {/* Header */}
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Kütüphane</Text>
-                    <Text style={styles.headerSubtitle}>{history.length} Hikaye</Text>
-                </View>
-
-                {/* Liste */}
-                <FlatList
-                    data={history}
-                    keyExtractor={item => item.id}
-                    renderItem={renderItem}
-                    contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
-                    ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Ionicons name="library-outline" size={64} color="rgba(255,255,255,0.2)" />
-                            <Text style={styles.emptyText}>Henüz hikaye okumadın.</Text>
-                        </View>
-                    }
-                />
-            </SafeAreaView>
+            {/* Liste */}
+            <FlatList
+                data={history}
+                keyExtractor={item => item.id}
+                renderItem={renderItem}
+                contentContainerStyle={{
+                    paddingHorizontal: 24,
+                    paddingTop: insets.top + 70,
+                    paddingBottom: insets.bottom + 100
+                }}
+                ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Ionicons name="library-outline" size={64} color="rgba(255,255,255,0.2)" />
+                        <Text style={styles.emptyText}>Henüz hikaye okumadın.</Text>
+                    </View>
+                }
+            />
         </View>
     );
 }
@@ -92,9 +102,17 @@ export default function StoriesScreen({ navigation }: any) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#000' },
 
-    header: { paddingHorizontal: 24, marginTop: 10, marginBottom: 20 },
-    headerTitle: { fontSize: 32, color: '#fff', fontFamily: FONTS.titleItalic },
-    headerSubtitle: { color: 'rgba(255,255,255,0.5)', fontSize: 14, marginTop: 4 },
+    headerTitle: {
+        color: '#fff',
+        fontSize: 18,
+        fontFamily: FONTS.bold,
+        marginBottom: 2,
+    },
+    headerCount: {
+        color: '#fbbf24',
+        fontSize: 13,
+        fontFamily: FONTS.semiBold,
+    },
 
     storyCard: {
         flexDirection: 'row',

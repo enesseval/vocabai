@@ -1,16 +1,17 @@
 // src/screens/ProgressScreen.tsx
 
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { useVocabulary } from '../context/VocabularyContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useHeader } from '../navigation/TabNavigator';
 import { FONTS } from '../constants/theme';
 
 const WEEK_DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -21,6 +22,16 @@ export default function ProgressScreen() {
     const insets = useSafeAreaInsets();
     const { savedWords } = useVocabulary();
     const { storiesRead } = useSubscription();
+    const { setHeaderLeft } = useHeader();
+
+    // Header'ı her focus'ta güncelle
+    useFocusEffect(
+        useCallback(() => {
+            setHeaderLeft(
+                <Text style={styles.headerLeftTitle}>İlerleme</Text>
+            );
+        }, [setHeaderLeft])
+    );
 
     // Mock mastery breakdown
     const masteryData = [
@@ -43,20 +54,11 @@ export default function ProgressScreen() {
                 style={StyleSheet.absoluteFill}
             />
 
-            {/* Header */}
-            <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Progress</Text>
-                <View style={{ width: 40 }} />
-            </View>
-
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[
                     styles.scrollContent,
-                    { paddingBottom: insets.bottom + 40 }
+                    { paddingTop: insets.top + 70, paddingBottom: insets.bottom + 100 }
                 ]}
             >
                 {/* Weekly Activity */}
@@ -167,22 +169,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerTitle: {
+    headerLeftTitle: {
         color: '#fff',
         fontSize: 18,
         fontFamily: FONTS.bold,

@@ -115,6 +115,119 @@
     "users": "100K+ kullanıcı",
     "startLearning": "Öğrenmeye Başla",
     "finePrint": "7 günlük ücretsiz deneme, sonra ₺1,199/yıl. İstediğin zaman iptal edebilirsin.",
-    "restore": "Satın Alımı Geri Yükle"
+    "restore": "Satın Alımı Geri Yükle",
+    "headline": "7 Günlük Ücretsiz Deneme",
+    "subheadline": "Tüm premium özelliklere tam erişim",
+    "ctaButton": "Ücretsiz Haftamı Başlat",
+    "ratingText": "{{count}} mutlu dil öğrencisine katıl",
+    "freeTrial": "7 günlük ücretsiz deneme",
+    "cancelAnytime": "İstediğin Zaman İptal Et",
+    "securePayment": "Güvenli Ödeme",
+    "billedAnnually": "Yıllık faturalandırma",
+    "billedMonthly": "Aylık faturalandırma",
+    "legalText": "Abone olarak Şartlarımızı ve Gizlilik Politikamızı kabul ediyorsunuz. Abonelik iptal edilmedikçe otomatik olarak yenilenir."
+  },
+  "home": {
+    "greeting": {
+      "morning": "Günaydın",
+      "afternoon": "Tünaydın",
+      "evening": "İyi akşamlar"
+    },
+    "xp": {
+      "level": "Seviye {{level}}",
+      "progress": "{{current}}/{{target}} XP",
+      "rank": "{{rank}}"
+    },
+    "story": {
+      "continue": "Hikayeye Devam Et",
+      "start": "Hikayeyi Başlat",
+      "xpReward": "+{{amount}} XP",
+      "estimatedTime": "{{mins}} dk",
+      "difficulty": {
+        "Beginner": "Başlangıç",
+        "Intermediate": "Orta",
+        "Advanced": "İleri"
+      },
+      "category": {
+        "Mystery": "Gizem",
+        "Romance": "Romantik",
+        "Adventure": "Macera",
+        "Sci-Fi": "Bilim Kurgu",
+        "Comedy": "Komedi",
+        "Drama": "Drama"
+      }
+    },
+    "journey": {
+      "title": "Yolculuğun",
+      "storiesRead": "Hikaye",
+      "wordsLearned": "Kelime",
+      "rank": "Rütbe"
+    },
+    "achievement": {
+      "latest": "Son Başarı",
+      "unlocked": "Kilidi Açıldı!"
+    },
+    "quickActions": {
+      "review": "Tekrar",
+      "quiz": "Quiz",
+      "library": "Kütüphane"
+    },
+    "quiz": {
+      "title": "Kelime Quizi",
+      "titleLocked": "Quiz Kilitli",
+      "subtitle": "Öğrendiğin {{count}} kelimeyi test et",
+      "subtitleLocked": "Kilidi açmak için en az 5 kelime öğren",
+      "xpReward": "+30 XP"
+    },
+    "recentStories": {
+      "title": "Okumaya Devam Et",
+      "seeAll": "Tüm Hikayeler",
+      "emptyTitle": "Henüz hikaye yok",
+      "emptySubtitle": "Son hikayelerinizi burada görmek için okumaya başlayın"
+    },
+    "unlockQuiz": {
+      "title": "Quiz nasıl açılır",
+      "description": "Hikaye okuyun ve quiz'e başlamak için en az 5 kelime kaydedin. Şu anda {{count}}/5 kelimeniz var."
+    },
+    "readyToTest": "Bilgini test etmeye hazır mısın?",
+    "loading": "Hikayeniz oluşturuluyor...",
+    "emptyState": {
+      "title": "Henüz hikaye yok!",
+      "subtitle": "İlk hikayenizi oluşturuyoruz..."
+    }
+  },
+  "achievements": {
+    "firstStory": {
+      "title": "İlk Adımlar",
+      "description": "İlk hikayeni tamamla"
+    },
+    "storyCollector": {
+      "title": "Hikaye Koleksiyoncusu",
+      "description": "10 hikaye oku"
+    },
+    "bookworm": {
+      "title": "Kitap Kurdu",
+      "description": "50 hikaye oku"
+    },
+    "wordLearner": {
+      "title": "Kelime Öğrencisi",
+      "description": "50 kelime kaydet"
+    },
+    "vocabularyMaster": {
+      "title": "Kelime Ustası",
+      "description": "200 kelime kaydet"
+    },
+    "quizChampion": {
+      "title": "Quiz Şampiyonu",
+      "description": "5 quizde %100 al"
+    },
+    "intermediateLevel": {
+      "title": "Yükselen Yıldız",
+      "description": "B1 seviyesine ulaş"
+    },
+    "advancedLevel": {
+      "title": "Dil Uzmanı",
+      "description": "C1 seviyesine ulaş"
+    }
   }
 }

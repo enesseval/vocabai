@@ -10,6 +10,7 @@ interface OnboardingHeaderProps {
     title?: string;
     highlight?: string;
     subtitle?: string;
+    onBackPress?: () => void;
 }
 
 export default function OnboardingHeader({
@@ -17,16 +18,25 @@ export default function OnboardingHeader({
     totalSteps = 4,
     title,
     highlight,
-    subtitle
+    subtitle,
+    onBackPress
 }: OnboardingHeaderProps) {
     const navigation = useNavigation();
+
+    const handleBackPress = () => {
+        if (onBackPress) {
+            onBackPress();
+        } else {
+            navigation.goBack();
+        }
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.topRow}>
                 <TouchableOpacity
                     style={styles.backButton}
-                    onPress={() => navigation.goBack()}
+                    onPress={handleBackPress}
                 >
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>

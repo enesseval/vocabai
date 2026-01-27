@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, StyleSheet, Animated, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { View, StyleSheet, Animated, TouchableWithoutFeedback, Keyboard, BackHandler, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -13,6 +13,7 @@ import { RootStackParamList } from '../../types/navigation';
 import OnboardingHeader from '../../components/OnboardingHeader';
 import OnboardingFooter from '../../components/OnboardingFooter';
 import { useOnboarding } from '../../context/OnboardingContext';
+import { useVocabulary } from '../../context/VocabularyContext';
 import { COLORS, SIZES } from '../../constants/theme';
 
 // STEPS
@@ -21,14 +22,48 @@ import LanguageStep from './steps/LanguageStep';
 import PurposeStep from './steps/PurposeStep';
 import LevelStep from './steps/LevelStep'; // <--- YENİ IMPORT
 import InterestsStep from './steps/InterestsStep';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function OnboardingScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { t } = useTranslation();
     const { userProfile } = useOnboarding();
+    const { initializeDefaultWords } = useVocabulary();
 
     const [currentStep, setCurrentStep] = useState(1);
     const fadeAnim = useRef(new Animated.Value(1)).current;
+
+    // Handle back button (both iOS header and Android hardware)
+    const handleGoBack = useCallback(() => {
+        if (currentStep > 1) {
+            // Go back to previous step
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 200,
+                useNativeDriver: true
+            }).start(() => {
+                setCurrentStep(prev => prev - 1);
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 200,
+                    useNativeDriver: true
+                }).start();
+            });
+        } else {
+            // On first step, go back to WelcomeScreen
+            navigation.goBack();
+        }
+    }, [currentStep, fadeAnim, navigation]);
+
+    // Android hardware back button handler
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            handleGoBack();
+            return true; // Prevent default behavior
+        });
+        return () => backHandler.remove();
+    }, [handleGoBack]);
 
     // Başlıkları Yönet (Sıralama Değişti)
     const getHeaderProps = () => {
@@ -99,10 +134,20 @@ export default function OnboardingScreen() {
             });
 
         } else {
-            // SON ADIM (5. Adım): Kayıt & ReadStory
+            // SON ADIM (5. Adım): Kayıt & Initialize Default Words & ReadStory
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
             try {
+                // Save user profile
                 await AsyncStorage.setItem('user_persona', JSON.stringify(userProfile));
+
+                // Initialize 5 default vocabulary words based on user profile
+                await initializeDefaultWords(
+                    userProfile.interests,
+                    userProfile.purpose,
+                    userProfile.level
+                );
+
+                // Navigate to first story
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'ReadStory', params: { isFirstStory: true } }],
@@ -134,6 +179,7 @@ export default function OnboardingScreen() {
                     <OnboardingHeader
                         currentStep={currentStep}
                         totalSteps={5} // <--- GÜNCELLENDİ
+                        onBackPress={handleGoBack}
                         {...getHeaderProps()}
                     />
 

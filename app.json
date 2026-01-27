@@ -1,27 +1,17 @@
 {
   "expo": {
-    "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "ios": {
-            "backgroundColor": "#1e1b4b",
-            "image": "./assets/adaptive-icon.png",
-            "resizeMode": "cover"
-          },
-          "android": {
-            "backgroundColor": "#1e1b4b",
-            "image": "./assets/adaptive-icon.png",
-            "imageWidth": 150
-          }
-        }
-      ]
-    ],
+    
     "name": "VocabAI",
     "slug": "vocabai",
     "version": "1.0.0",
     "orientation": "portrait",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/source_icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.enesseval.vocabai",
@@ -32,7 +22,14 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.enesseval.vocabai"
+      "package": "com.enesseval.vocabai",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
     },
     "extra": {
       "eas": {

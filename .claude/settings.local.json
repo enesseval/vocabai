@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(ls \"C:\\\\Users\\\\Enes\\\\.claude-worktrees\\\\vocabai\\\\exciting-kare\\\\src\\\\components\\\\paywall\"\" 2>&1 || echo \"Directory does not exist \")",
+      "Bash(git checkout:*)",
+      "Bash(node -e:*)",
+      "Bash(npx expo start:*)",
+      "Bash(powershell -Command:*)"
+    ]
+  }
+}
