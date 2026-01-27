@@ -61,9 +61,6 @@ export const WordCard: React.FC<WordCardProps> = ({ word }) => {
                     style={styles.gradientOverlay}
                 />
 
-                {/* Accent Line */}
-                <View style={[styles.accentLine, { backgroundColor: typeInfo.color }]} />
-
                 {/* Content */}
                 <View style={styles.content}>
                     {/* Header Row */}
@@ -130,13 +127,13 @@ export const WordCard: React.FC<WordCardProps> = ({ word }) => {
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        marginBottom: 12,
+        marginBottom: 0,
     },
     cardContainer: {
         position: 'relative',
         backgroundColor: 'rgba(17, 24, 39, 0.6)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: .7,
+        borderColor: 'rgba(255,255,255,0.5)',
         borderRadius: 20,
         overflow: 'hidden',
         ...Platform.select({

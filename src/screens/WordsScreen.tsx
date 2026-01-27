@@ -271,7 +271,6 @@ export default function WordsScreen() {
                                 onPress={() => handleDeleteWord(word.word)}
                                 style={styles.deleteButton}
                             >
-                                <Ionicons name="trash-outline" size={20} color="#ef4444" />
                             </TouchableOpacity>
                         </View>
                     ))
@@ -288,7 +287,7 @@ const styles = StyleSheet.create({
     },
     wordCardWrapper: {
         position: 'relative',
-        marginBottom: 12,
+        marginBottom: 0,
     },
     deleteButton: {
         position: 'absolute',
@@ -318,7 +317,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingHorizontal: 24,
+        paddingHorizontal: 6,
         gap: 12,
     },
     controlsSection: {
@@ -494,14 +493,6 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontFamily: FONTS.regular,
         lineHeight: 18,
-    },
-    deleteButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     emptyState: {
         backgroundColor: 'rgba(255,255,255,0.05)',
