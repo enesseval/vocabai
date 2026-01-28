@@ -45,12 +45,14 @@ export interface ProgressiveStoryResult {
 export async function generateStoryProgressive(
   profile: UserProfile,
   grammarFocus: string = 'General',
-  reviewWords: WordAnalysis[] = []
+  reviewWords: WordAnalysis[] = [],
+  lastStory?: Story | null
 ): Promise<ProgressiveStoryResult> {
   console.log('🚀 Progressive Story Generation Started');
   console.log(`   Level: ${profile.level}`);
   console.log(`   Grammar: ${grammarFocus}`);
   console.log(`   Review Words: ${reviewWords.length}`);
+  console.log(`   Series State: ${lastStory ? 'continuation' : 'first'}`);
 
   // ═══════════════════════════════════════════════════════════════
   // STEP 1: Generate Story (Blocking - kullanıcı bunu beklemeli)
@@ -63,7 +65,7 @@ export async function generateStoryProgressive(
 
   while (storyRetryCount <= MAX_STORY_RETRIES) {
     try {
-      storyResponse = await callStoryGeneration(profile, grammarFocus, reviewWords);
+      storyResponse = await callStoryGeneration(profile, grammarFocus, reviewWords, lastStory);
       storyValidation = validateStoryResponse(storyResponse as unknown as StoryResponse, profile.level);
 
       if (storyValidation.valid) {
@@ -227,7 +229,7 @@ export async function generateCompleteStory(
 
   while (storyRetryCount <= MAX_STORY_RETRIES) {
     try {
-      storyResponse = await callStoryGeneration(profile, grammarFocus, reviewWords);
+      storyResponse = await callStoryGeneration(profile, grammarFocus, reviewWords, lastStory);
       storyValidation = validateStoryResponse(storyResponse as unknown as StoryResponse, profile.level);
 
       if (storyValidation.valid) {
@@ -398,7 +400,8 @@ export async function generateCompleteStory(
 async function callStoryGeneration(
   profile: UserProfile,
   grammarFocus: string,
-  reviewWords: WordAnalysis[]
+  reviewWords: WordAnalysis[],
+  lastStory?: Story | null
 ): Promise<AIStoryResponse> {
   const { data, error } = await supabase.functions.invoke('generate-story', {
     body: {
@@ -410,7 +413,14 @@ async function callStoryGeneration(
       reviewWords: reviewWords.map(w => ({
         word: w.word,
         translation: w.translation
-      }))
+      })),
+      seriesState: lastStory ? {
+        lastTitle: lastStory.title,
+        lastId: lastStory.id,
+        continuation: true
+      } : {
+        continuation: false
+      }
     }
   });
 

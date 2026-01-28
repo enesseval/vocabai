@@ -15,7 +15,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../types/navigation';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useVocabulary } from '../context/VocabularyContext';
-import { useSubscription } from '../context/SubscriptionContext';
 import { FONTS } from '../constants/theme';
 import { Story } from '../types/story';
 import { useHeader } from '../navigation/TabNavigator';
@@ -81,6 +80,12 @@ export default function HomeScreen() {
         navigation.navigate('StoriesTab' as any);
     };
 
+    const handleNewStory = () => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        // Navigate to ReadStory screen to generate a new story
+        navigation.navigate('ReadStory');
+    };
+
     const canTakeQuiz = savedWords.length >= 5;
 
     return (
@@ -99,6 +104,31 @@ export default function HomeScreen() {
                 showsVerticalScrollIndicator={false}
             >
 
+                {/* New Story Button - Hero CTA */}
+                <TouchableOpacity
+                    onPress={handleNewStory}
+                    activeOpacity={0.9}
+                    style={styles.newStoryButton}
+                >
+                    <LinearGradient
+                        colors={['#fbbf24', '#f59e0b']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.newStoryGradient}
+                    >
+                        <View style={styles.newStoryContent}>
+                            <View style={styles.newStoryIcon}>
+                                <Ionicons name="sparkles" size={28} color="#000" />
+                            </View>
+                            <View style={styles.newStoryText}>
+                                <Text style={styles.newStoryTitle}>Yeni Hikaye Oluştur</Text>
+                                <Text style={styles.newStorySubtitle}>Senin için özel bir macera</Text>
+                            </View>
+                            <Ionicons name="arrow-forward" size={24} color="#000" />
+                        </View>
+                    </LinearGradient>
+                </TouchableOpacity>
+
                 {/* Recent Stories Section - Compact */}
                 <View style={styles.storiesSection}>
                     <Text style={styles.sectionTitle}>{t('home.recentStories.title')}</Text>
@@ -116,16 +146,63 @@ export default function HomeScreen() {
                                     activeOpacity={0.9}
                                     style={styles.storyCard}
                                 >
-                                    <BlurView intensity={15} tint="dark" style={styles.storyCardBlur}>
-                                        <Text style={styles.storyTitle} numberOfLines={3}>
-                                            {story.title}
-                                        </Text>
-                                        {story.metadata?.category && (
-                                            <Text style={styles.storyCategory}>
-                                                {t(`home.story.category.${story.metadata.category}`)}
+                                    <LinearGradient
+                                        colors={['rgba(30, 27, 75, 0.8)', 'rgba(15, 23, 42, 0.9)']}
+                                        style={styles.storyCardGradient}
+                                    >
+                                        <BlurView intensity={20} tint="dark" style={styles.storyCardBlur}>
+                                            {/* Category Badge */}
+                                            {story.metadata?.category && (
+                                                <View style={styles.categoryBadge}>
+                                                    <Ionicons
+                                                        name={
+                                                            story.metadata.category === 'Mystery' ? 'eye' :
+                                                            story.metadata.category === 'Romance' ? 'heart' :
+                                                            story.metadata.category === 'Adventure' ? 'compass' :
+                                                            story.metadata.category === 'Sci-Fi' ? 'planet' :
+                                                            story.metadata.category === 'Comedy' ? 'happy' :
+                                                            'book'
+                                                        }
+                                                        size={14}
+                                                        color="#fbbf24"
+                                                    />
+                                                    <Text style={styles.categoryText}>
+                                                        {story.metadata.category}
+                                                    </Text>
+                                                </View>
+                                            )}
+
+                                            {/* Title */}
+                                            <Text style={styles.storyTitle} numberOfLines={2}>
+                                                {story.title}
                                             </Text>
-                                        )}
-                                    </BlurView>
+
+                                            {/* Teaser */}
+                                            {story.metadata?.teaser_native && (
+                                                <Text style={styles.storyTeaser} numberOfLines={10}>
+                                                    {story.metadata.teaser_native}
+                                                </Text>
+                                            )}
+
+                                            {/* Footer Info */}
+                                            <View style={styles.storyFooter}>
+                                                {story.metadata?.estimated_read_minutes && (
+                                                    <View style={styles.storyMeta}>
+                                                        <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.5)" />
+                                                        <Text style={styles.storyMetaText}>
+                                                            {story.metadata.estimated_read_minutes} dk
+                                                        </Text>
+                                                    </View>
+                                                )}
+                                                {story.level && (
+                                                    <View style={styles.storyMeta}>
+                                                        <Ionicons name="bar-chart-outline" size={12} color="rgba(255,255,255,0.5)" />
+                                                        <Text style={styles.storyMetaText}>{story.level}</Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </BlurView>
+                                    </LinearGradient>
                                 </TouchableOpacity>
                             ))}
 
@@ -238,42 +315,117 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontFamily: FONTS.bold,
     },
+    newStoryButton: {
+        marginBottom: 24,
+        borderRadius: 20,
+        overflow: 'hidden',
+    },
+    newStoryGradient: {
+        borderRadius: 20,
+    },
+    newStoryContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 20,
+        gap: 16,
+    },
+    newStoryIcon: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    newStoryText: {
+        flex: 1,
+    },
+    newStoryTitle: {
+        color: '#000',
+        fontSize: 18,
+        fontFamily: FONTS.bold,
+        marginBottom: 4,
+    },
+    newStorySubtitle: {
+        color: 'rgba(0, 0, 0, 0.7)',
+        fontSize: 13,
+        fontFamily: FONTS.regular,
+    },
     storiesSection: {
         marginBottom: 32,
     },
     storiesScroll: {
-        paddingRight: 24,
         gap: 12,
     },
     storyCard: {
-        width: 140,
-        height: 100,
+        width: 280,
+        height: 150,
+        borderRadius: 16,
+        overflow: 'hidden',
+    },
+    storyCardGradient: {
+        flex: 1,
+        borderRadius: 16,
     },
     storyCardBlur: {
         flex: 1,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: 'rgba(255,255,255,0.03)',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 12,
-        padding: 12,
+        borderRadius: 16,
+        padding: 16,
         justifyContent: 'space-between',
         overflow: 'hidden',
     },
-    storyTitle: {
-        color: '#fff',
-        fontSize: 13,
-        fontFamily: FONTS.semiBold,
-        lineHeight: 18,
+    categoryBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        alignSelf: 'flex-start',
+        backgroundColor: 'rgba(251, 191, 36, 0.15)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+        marginBottom: 12,
     },
-    storyCategory: {
+    categoryText: {
         color: '#fbbf24',
+        fontSize: 10,
+        fontFamily: FONTS.semiBold,
+        textTransform: 'uppercase',
+    },
+    storyTitle: {
+        color: '#fbbf24',
+        fontSize: 18,
+        fontFamily: FONTS.bold,
+        lineHeight: 20,
+        marginBottom: 8,
+    },
+    storyTeaser: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 12,
+        fontFamily: FONTS.regular,
+        lineHeight: 16,
+        flex: 1,
+    },
+    storyFooter: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 12,
+    },
+    storyMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    storyMetaText: {
+        color: 'rgba(255,255,255,0.5)',
         fontSize: 11,
         fontFamily: FONTS.regular,
-        marginTop: 4,
     },
     seeAllCard: {
-        width: 100,
-        height: 100,
+        width: 150,
+        height: 150,
     },
     seeAllBlur: {
         flex: 1,

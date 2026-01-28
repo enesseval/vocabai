@@ -15,37 +15,165 @@ import { RootStackParamList } from '../types/navigation';
 import { QuizQuestion, QuizResult } from '../types/quiz';
 import { Story } from '../types/story';
 import { COLORS, FONTS } from '../constants/theme';
+import { xpService } from '../services/xpService';
 
 const { width, height } = Dimensions.get('window');
 
-// Mock quiz generator from story
+// Convert AI quiz to app quiz format
 const generateQuizFromStory = (story: Story): QuizQuestion[] => {
     const questions: QuizQuestion[] = [];
 
-    // Get first 5 vocabulary words for quiz
-    const vocabWords = story.vocabulary?.slice(0, 5) || [];
+    console.log('🔍 Checking for AI-generated quiz...');
+    console.log('   story.quiz exists:', !!story.quiz);
 
-    vocabWords.forEach((vocab, index) => {
-        // Create distractors (wrong answers)
-        const distractors = [
-            'yanlış çeviri 1',
-            'incorrect translation',
-            'другой перевод',
-        ];
+    // Try to use AI-generated quiz first
+    if (story.quiz) {
+        console.log('✅ Using AI-generated quiz');
+        console.log('   Fill in blank:', story.quiz.fill_in_blank?.length || 0);
+        console.log('   True/False:', story.quiz.true_false?.length || 0);
+        console.log('   Comprehension:', story.quiz.comprehension?.length || 0);
 
-        const options = [vocab.translation, ...distractors.slice(0, 3)]
-            .sort(() => Math.random() - 0.5);
-
-        questions.push({
-            id: `q${index + 1}`,
-            type: 'multiple_choice',
-            question: `What does "${vocab.word}" mean?`,
-            options,
-            correctAnswer: vocab.translation,
-            explanation: vocab.explanation,
-            word: vocab.word,
+        // Convert fill_in_blank to multiple choice
+        story.quiz.fill_in_blank?.forEach((q, index) => {
+            questions.push({
+                id: `fib${index + 1}`,
+                type: 'fill_blank',
+                question: q.sentence,
+                options: q.options,
+                correctAnswer: q.answer,
+                explanation: q.hint,
+                word: '',
+            });
         });
-    });
+
+        // Convert true_false
+        story.quiz.true_false?.forEach((q, index) => {
+            questions.push({
+                id: `tf${index + 1}`,
+                type: 'multiple_choice',
+                question: q.statement,
+                options: ['True', 'False'],
+                correctAnswer: q.answer ? 'True' : 'False',
+                explanation: q.evidence,
+                word: '',
+            });
+        });
+
+        // Convert comprehension questions
+        story.quiz.comprehension?.forEach((q, index) => {
+            // If no options provided (old format), create them from answer
+            let options = q.options;
+            let correctAnswer = q.answer;
+
+            if (!options || options.length === 0) {
+                // Fallback: Use answer and generate distractors
+                console.log('⚠️ Comprehension question missing options, generating fallback');
+                const answer = (q as any).answer_native || q.answer;
+                const distractors = [
+                    'Hikayede bahsedilmeyen bir neden',
+                    'Yanlış bir çıkarım',
+                    'İlgisiz bir açıklama'
+                ];
+                options = [answer, ...distractors].sort(() => Math.random() - 0.5);
+                correctAnswer = answer;
+            }
+
+            questions.push({
+                id: `comp${index + 1}`,
+                type: 'comprehension',
+                question: q.question,
+                options: options,
+                correctAnswer: correctAnswer,
+                explanation: q.explanation || (q as any).answer || '',
+                word: '',
+            });
+        });
+
+        console.log(`✅ Converted ${questions.length} AI questions`);
+    }
+
+    // Fallback: Generate better questions from vocabulary if no AI quiz
+    if (questions.length === 0) {
+        console.log('⚠️ No AI quiz found, generating smart fallback questions');
+        const allVocab = story.vocabulary || [];
+
+        if (allVocab.length === 0) {
+            console.log('❌ No vocabulary available for quiz generation');
+            return [];
+        }
+
+        // Separate by priority
+        const highPriority = allVocab.filter(v => v.priority === 'high');
+        const mediumPriority = allVocab.filter(v => v.priority === 'medium');
+        const lowPriority = allVocab.filter(v => v.priority === 'low');
+
+        // Select words: prefer high > medium > low
+        const selectedWords = [
+            ...highPriority.slice(0, 3),
+            ...mediumPriority.slice(0, 2),
+            ...lowPriority.slice(0, 1)
+        ].slice(0, 5); // Max 5 questions
+
+        console.log(`📝 Selected ${selectedWords.length} words for quiz:`,
+            selectedWords.map(w => `${w.word} (${w.priority})`));
+
+        selectedWords.forEach((vocab, index) => {
+            // Get same-type words for better distractors
+            const sameType = allVocab.filter(v =>
+                v.word !== vocab.word &&
+                v.type === vocab.type
+            );
+
+            // Get different-type words as backup
+            const differentType = allVocab.filter(v =>
+                v.word !== vocab.word &&
+                v.type !== vocab.type
+            );
+
+            // Build distractors (prioritize same type)
+            const distractors: string[] = [];
+
+            // Add 2 same-type distractors
+            sameType.slice(0, 2).forEach(v => distractors.push(v.translation));
+
+            // Add 1 different-type distractor
+            if (differentType.length > 0) {
+                distractors.push(differentType[0].translation);
+            }
+
+            // Shuffle and ensure we have exactly 3 distractors
+            const shuffledDistractors = distractors
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3);
+
+            const options = [vocab.translation, ...shuffledDistractors]
+                .sort(() => Math.random() - 0.5);
+
+            // Better question format based on type
+            let questionText = '';
+            if (vocab.type === 'Verb') {
+                questionText = `Ne anlama gelir: "${vocab.word}"?`;
+            } else if (vocab.type === 'Noun') {
+                questionText = `"${vocab.word}" kelimesinin Türkçe karşılığı nedir?`;
+            } else if (vocab.type === 'Adjective') {
+                questionText = `"${vocab.word}" sıfatı ne demektir?`;
+            } else {
+                questionText = `"${vocab.word}" ne anlama gelir?`;
+            }
+
+            questions.push({
+                id: `v${index + 1}`,
+                type: 'multiple_choice',
+                question: questionText,
+                options,
+                correctAnswer: vocab.translation,
+                explanation: vocab.explanation || vocab.in_story_context || `"${vocab.word}" means "${vocab.translation}"`,
+                word: vocab.word,
+            });
+        });
+
+        console.log(`✅ Generated ${questions.length} smart fallback questions`);
+    }
 
     return questions;
 };
@@ -56,7 +184,34 @@ export default function PostStoryQuizScreen() {
     const insets = useSafeAreaInsets();
 
     const story = route.params?.story;
-    const [questions] = useState<QuizQuestion[]>(generateQuizFromStory(story));
+    const [questions] = useState<QuizQuestion[]>(() => {
+        console.log('\n🎯 ===== QUIZ GENERATION START =====');
+        console.log('📚 Story:', story?.title);
+        console.log('📖 Vocabulary available:', story?.vocabulary?.length || 0);
+
+        // Log AI quiz data if available
+        if (story?.quiz) {
+            console.log('🤖 AI Quiz Data:');
+            console.log(JSON.stringify(story.quiz, null, 2));
+        } else {
+            console.log('⚠️ No AI quiz in story object');
+        }
+
+        const generatedQuestions = generateQuizFromStory(story);
+
+        console.log('\n🎯 Final Questions for UI:');
+        generatedQuestions.forEach((q, i) => {
+            console.log(`\nQuestion ${i + 1}:`);
+            console.log(`   ID: ${q.id}`);
+            console.log(`   Type: ${q.type}`);
+            console.log(`   Question: ${q.question}`);
+            console.log(`   Correct: "${q.correctAnswer}"`);
+            console.log(`   Options: [${q.options?.map(o => `"${o}"`).join(', ') || 'No options'}]`);
+        });
+        console.log('\n🎯 ===== QUIZ GENERATION END =====\n');
+
+        return generatedQuestions;
+    });
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [isAnswered, setIsAnswered] = useState(false);
@@ -139,14 +294,24 @@ export default function PostStoryQuizScreen() {
         }
     };
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        console.log('🔥 handleFinish called, navigating to PaywallScreen...'); // DEBUG
-        try {
+
+        // Check if this is the first story
+        const xpState = xpService.getState();
+        const storiesCompleted = xpState.xpHistory.filter(
+            entry => entry.type === 'story_completed'
+        ).length;
+
+        console.log('📊 Stories completed:', storiesCompleted);
+
+        // Only show paywall after first story
+        if (storiesCompleted === 1) {
+            console.log('🔥 First story completed! Showing paywall...');
             navigation.navigate('PaywallScreen');
-            console.log('✅ Navigation successful'); // DEBUG
-        } catch (error) {
-            console.error('❌ Navigation error:', error); // DEBUG
+        } else {
+            console.log('✅ Not first story, going back to home');
+            navigation.navigate('MainTabs');
         }
     };
 
@@ -213,6 +378,36 @@ export default function PostStoryQuizScreen() {
         );
     }
 
+    // Safety check: if no questions or no current question
+    if (!currentQuestion || questions.length === 0) {
+        return (
+            <View style={styles.container}>
+                <LinearGradient
+                    colors={['#1e1b4b', '#0f172a', '#000000']}
+                    style={StyleSheet.absoluteFill}
+                />
+                <View style={[styles.resultsContainer, { paddingTop: insets.top + 40 }]}>
+                    <Text style={styles.resultsTitle}>No Quiz Available</Text>
+                    <Text style={styles.resultsSubtitle}>Quiz generation failed</Text>
+                    <TouchableOpacity
+                        style={styles.finishButton}
+                        onPress={() => navigation.navigate('MainTabs')}
+                        activeOpacity={0.8}
+                    >
+                        <LinearGradient
+                            colors={['#fbbf24', '#f59e0b']}
+                            style={styles.finishButtonGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                        >
+                            <Text style={styles.finishButtonText}>Go Home</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <LinearGradient
@@ -240,11 +435,20 @@ export default function PostStoryQuizScreen() {
                     }
                 ]}
             >
-                <Text style={styles.questionNumber}>Question {currentQuestionIndex + 1}</Text>
+                <View style={styles.questionHeader}>
+                    <Text style={styles.questionNumber}>Question {currentQuestionIndex + 1}</Text>
+                    <View style={styles.typeBadge}>
+                        <Text style={styles.typeBadgeText}>
+                            {currentQuestion.type === 'fill_blank' ? '📝 Fill in Blank' :
+                             currentQuestion.type === 'comprehension' ? '💭 Comprehension' :
+                             '🎯 Multiple Choice'}
+                        </Text>
+                    </View>
+                </View>
                 <Text style={styles.question}>{currentQuestion.question}</Text>
 
                 <View style={styles.optionsContainer}>
-                    {currentQuestion.options.map((option, index) => {
+                    {currentQuestion.options?.map((option, index) => {
                         const isSelected = selectedAnswer === option;
                         const isCorrect = option === currentQuestion.correctAnswer;
                         const showCorrect = isAnswered && isCorrect;
@@ -345,13 +549,31 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 24,
     },
+    questionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
     questionNumber: {
         color: '#fbbf24',
         fontSize: 14,
         fontFamily: FONTS.semiBold,
         textTransform: 'uppercase',
         letterSpacing: 1.2,
-        marginBottom: 12,
+    },
+    typeBadge: {
+        backgroundColor: 'rgba(251, 191, 36, 0.15)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(251, 191, 36, 0.3)',
+    },
+    typeBadgeText: {
+        color: '#fbbf24',
+        fontSize: 11,
+        fontFamily: FONTS.semiBold,
     },
     question: {
         color: '#fff',
