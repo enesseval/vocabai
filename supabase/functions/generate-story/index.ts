@@ -112,6 +112,8 @@ Word count is a guide, not a constraint.
 
 [CRITICAL CONSISTENCY RULES]
 - Every word in segments.marked_words MUST match vocabulary.word EXACTLY (case-insensitive).
+- Every word in segments.marked_words_native MUST match vocabulary.translation EXACTLY.
+- marked_words and marked_words_native arrays MUST have the same length and correspond 1:1.
 - Each review word MUST appear at least twice in the story unless narratively impossible.
 - Grammar focus usage must be DISTRIBUTED across paragraphs, not clustered.
 - Do NOT reuse the same sentence structure repeatedly to satisfy grammar count.
@@ -122,7 +124,9 @@ Word count is a guide, not a constraint.
 3. Build tension/conflict appropriate to genre.
 4. End with resolution OR cliffhanger.
 5. Provide ${nLangName} translation per paragraph.
-6. Mark 4–6 vocabulary words per paragraph.
+6. Mark 4–6 vocabulary words per paragraph in BOTH languages:
+   - marked_words: array of words in ${tLangName} (from target text)
+   - marked_words_native: array of corresponding translations in ${nLangName} (from native text)
 
 [TASK 2: TEASER]
 Create 2-sentence preview:
@@ -185,7 +189,8 @@ Prepare continuation metadata:
     {
       "target": "string (${tLangName})",
       "native": "string (${nLangName})",
-      "marked_words": ["string"]
+      "marked_words": ["string"],
+      "marked_words_native": ["string"]
     }
   ],
 

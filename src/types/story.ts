@@ -43,7 +43,8 @@ export interface WordAnalysis {
 export interface StorySegment {
   target: string;
   native: string;
-  marked_words?: string[]; // Words to highlight in this segment
+  marked_words?: string[]; // Words to highlight in target language
+  marked_words_native?: string[]; // Words to highlight in native language (translations)
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -104,8 +105,9 @@ export interface TrueFalseQuestion {
 
 export interface ComprehensionQuestion {
   question: string;
+  options: string[];
   answer: string;
-  answer_native: string;
+  explanation: string;
 }
 
 export interface WordMatchPair {

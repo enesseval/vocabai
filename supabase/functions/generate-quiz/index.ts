@@ -76,7 +76,7 @@ Grammar Focus: ${grammarFocus || 'General'}
 - All options must be similar in length and structure to avoid giving away the answer.
 
 [TASK 1: FILL-IN-THE-BLANK]
-Generate 3 questions:
+Generate 2 questions:
 - Use ACTUAL sentences from the story
 - Remove ONE key word (preferably grammar-focus or vocabulary item)
 - Provide 4 options: 1 correct + 3 plausible distractors
@@ -84,24 +84,26 @@ Generate 3 questions:
 - Label the grammar concept tested (short form: "past simple", "conditionals", etc.)
 
 [TASK 2: TRUE/FALSE]
-Generate 3 statements:
+Generate 2 statements:
 - Based STRICTLY on story facts
 - Include exact quote as evidence
-- Mix: at least 1 true, at least 1 false
+- Mix: 1 true, 1 false
 - Statements should test comprehension, not memory of minor details
 
 [TASK 3: COMPREHENSION]
-Generate 2 questions:
-- Use "Why" or "What" question formats
-- Answer must be inferrable from story
-- Provide answer in both ${tLangName} and ${nLangName}
+Generate 1 multiple-choice comprehension question:
+- Use "Why", "What", "How" question formats in ${nLangName}
+- Question tests understanding of story events, character motivations, or outcomes
+- Provide 4 options in ${nLangName}: 1 correct + 3 plausible distractors
+- All 4 options must be DIFFERENT and contextually distinct
+- Answer must be inferrable from story content only
 
-[TASK 4: WORD MATCH]
-Generate 5 pairs:
-- Select from provided vocabulary list ONLY
-- Pair vocabulary word with ${nLangName} translation
-- Prioritize HIGH and MEDIUM priority words
-- Do NOT invent translations — use exactly what's in the vocabulary list
+CRITICAL RULES FOR COMPREHENSION:
+- DO NOT repeat the same answer 4 times with slight variations
+- Each option must present a DIFFERENT scenario/outcome/reason
+- Distractors should be plausible but clearly wrong based on the story
+- Options must be similar length (avoid obvious answer giveaways)
+
 
 [OUTPUT SCHEMA]
 {
@@ -124,24 +126,33 @@ Generate 5 pairs:
     ],
     "comprehension": [
       {
-        "question": "string",
-        "answer": "string (${tLangName})",
-        "answer_native": "string (${nLangName})"
-      }
-    ],
-    "word_match": [
-      {
-        "word": "string",
-        "translation": "string"
+        "question": "string (in ${nLangName})",
+        "options": ["option1 (${nLangName})", "option2 (${nLangName})", "option3 (${nLangName})", "option4 (${nLangName})"],
+        "answer": "option1 (${nLangName}) - MUST be one of the options above",
+        "explanation": "string (why this is correct, in ${nLangName})"
       }
     ]
   }
+}
+
+[COMPREHENSION EXAMPLE]
+{
+  "question": "Neden X oldu?",
+  "options": [
+    "Çünkü Y oldu ve Z'yi etkiledi",
+    "Çünkü A karakteri B'yi yaptı",
+    "Çünkü hikayede C bahsedildi",
+    "Çünkü D durumu E'ye yol açtı"
+  ],
+  "answer": "Çünkü Y oldu ve Z'yi etkiledi",
+  "explanation": "Hikayede açıkça belirtildiği gibi..."
 }
 
 [OUTPUT RULES — ABSOLUTE]
 - Output ONLY valid JSON
 - NO markdown, NO explanations, NO extra text
 - Questions must be solvable from story alone
+- Comprehension questions MUST have 4 distinct options in ${nLangName}
 - Failure to comply invalidates response
 `;
 

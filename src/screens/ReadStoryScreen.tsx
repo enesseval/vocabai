@@ -6,6 +6,7 @@ import {
     Modal, Animated, Dimensions, PanResponder, TouchableWithoutFeedback,
     NativeSyntheticEvent, NativeScrollEvent, StatusBar as RNStatusBar, Platform
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -21,11 +22,12 @@ import { RootStackParamList } from '../types/navigation';
 import { COLORS, FONTS } from '../constants/theme';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useVocabulary } from '../context/VocabularyContext';
 import { Story } from '../types/story';
 
 import { useStoryAudio } from '../hooks/useStoryAudio';
 import { useWordInteraction } from '../hooks/useWordInteraction';
-import { generateDailyStory } from '../services/aiService';
+import { generateStoryFast } from '../services/aiService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -95,6 +97,190 @@ const TypewriterText = ({ text, onComplete, style, skipAnimation }: any) => {
     return <Text style={style}>{displayedText}</Text>;
 };
 
+const StoryLoadingScreen = () => {
+    const { savedWords } = useVocabulary();
+
+    // Get 5 random words to show (prioritize recent words)
+    const displayWords = useMemo(() => {
+        if (!savedWords || savedWords.length === 0) {
+            return [{
+                word: 'Journey',
+                translation: 'Yolculuk',
+                type: 'noun'
+            }];
+        }
+        // Take last 10 words (most recent) and shuffle
+        const recentWords = savedWords.slice(-10);
+        const shuffled = [...recentWords].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, 5);
+    }, [savedWords]);
+
+    const [currentWordIndex, setCurrentWordIndex] = useState(0);
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const phaseFadeAnim = useRef(new Animated.Value(1)).current;
+    const glowAnim = useRef(new Animated.Value(0)).current;
+
+    // Ball animations
+    const ball1 = useRef(new Animated.Value(0)).current;
+    const ball2 = useRef(new Animated.Value(0)).current;
+    const ball3 = useRef(new Animated.Value(0)).current;
+
+    const [currentPhase, setCurrentPhase] = useState(0);
+    const phases = ['Hikayeni oluşturuyoruz', 'İçeriği kişiselleştiriyoruz', 'Anlamı kurguluyor, sadece cümleleri değil'];
+
+    useEffect(() => {
+        // Glow pulse animation
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(glowAnim, {
+                    toValue: 1,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(glowAnim, {
+                    toValue: 0.3,
+                    duration: 2000,
+                    useNativeDriver: true,
+                }),
+            ])
+        ).start();
+
+        // Ball bounce animations (staggered)
+        const createBounce = (ball: Animated.Value, delay: number) => {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.delay(delay),
+                    Animated.timing(ball, {
+                        toValue: -10,
+                        duration: 400,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(ball, {
+                        toValue: 0,
+                        duration: 400,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        };
+
+        createBounce(ball1, 0);
+        createBounce(ball2, 200);
+        createBounce(ball3, 400);
+
+        // Word rotation interval
+        const wordInterval = setInterval(() => {
+            // Fade out
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            }).start(() => {
+                // Change word
+                setCurrentWordIndex(prev => (prev + 1) % displayWords.length);
+                // Fade in
+                Animated.timing(fadeAnim, {
+                    toValue: 1,
+                    duration: 400,
+                    useNativeDriver: true,
+                }).start();
+            });
+        }, 3000);
+
+        // Phase text rotation with animation
+        const phaseInterval = setInterval(() => {
+            // Fade out
+            Animated.timing(phaseFadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                // Change phase
+                setCurrentPhase(prev => (prev + 1) % phases.length);
+                // Fade in
+                Animated.timing(phaseFadeAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }).start();
+            });
+        }, 4000);
+
+        return () => {
+            clearInterval(wordInterval);
+            clearInterval(phaseInterval);
+        };
+    }, [displayWords]);
+
+    const currentWord = displayWords[currentWordIndex];
+
+    return (
+        <View style={styles.loadingContainer}>
+            <LinearGradient
+                colors={['#020617', '#0f172a', '#020617']}
+                style={StyleSheet.absoluteFill}
+            />
+
+            {/* Top header */}
+            <View style={styles.loadingHeader}>
+                <View style={styles.loadingLogoContainer}>
+                    <View style={styles.loadingLogoIcon}>
+                        <Ionicons name="book" size={20} color="#fbbf24" />
+                    </View>
+                    <Text style={styles.loadingLogoText}>VOCABAI</Text>
+                </View>
+            </View>
+
+            {/* Mastery tip */}
+            <View style={styles.masteryTipContainer}>
+                <BlurView intensity={20} tint="dark" style={styles.masteryTipBlur}>
+                    <Text style={styles.masteryTipLabel}>MASTERY TIP</Text>
+                    <Text style={styles.masteryTipText}>
+                        Fluent speakers use context to bridge gaps in vocabulary.
+                    </Text>
+                </BlurView>
+            </View>
+
+            {/* Central word display */}
+            <View style={styles.loadingCenterContent}>
+                {/* Background ambient glow */}
+                <Animated.View
+                    style={[
+                        styles.wordGlowBackground,
+                        { opacity: glowAnim }
+                    ]}
+                />
+
+                {/* Main word card */}
+                <Animated.View style={[styles.wordCard, { opacity: fadeAnim }]}>
+                    <Text style={styles.wordForeign}>{currentWord.word}</Text>
+                    <View style={styles.wordDivider} />
+                    <Text style={styles.wordTranslation}>{currentWord.translation}</Text>
+                </Animated.View>
+            </View>
+
+            {/* Status and progress */}
+            <View style={styles.loadingFooter}>
+                <Animated.Text style={[styles.loadingStatus, { opacity: phaseFadeAnim }]}>
+                    {phases[currentPhase]}
+                </Animated.Text>
+                <Text style={styles.loadingSubtext}>SYNTHESIZING CONTEXT</Text>
+
+                {/* Bouncing balls indicator */}
+                <View style={styles.bouncingBalls}>
+                    <Animated.View style={[styles.ball, { transform: [{ translateY: ball1 }] }]} />
+                    <Animated.View style={[styles.ball, { transform: [{ translateY: ball2 }] }]} />
+                    <Animated.View style={[styles.ball, { transform: [{ translateY: ball3 }] }]} />
+                </View>
+
+                <Text style={styles.loadingTagline}>
+                    Crafting meaning, not just sentences
+                </Text>
+            </View>
+        </View>
+    );
+};
+
 // --- MAIN SCREEN ---
 
 export default function ReadStoryScreen() {
@@ -141,8 +327,12 @@ export default function ReadStoryScreen() {
             const processText = (text: string, type: 'target' | 'native') => text.split(' ').map(rawWord => {
                 const clean = rawWord.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"]/g, "").toLowerCase();
                 const isImportant = type === 'target'
-                    ? story.vocabulary?.some(v => v.word.toLowerCase() === clean || v.lemma.toLowerCase() === clean)
-                    : story.vocabulary?.some(v => v.translation.toLowerCase().includes(clean));
+                    ? story.vocabulary?.some(v => v.word.toLowerCase() === clean || v.lemma?.toLowerCase() === clean)
+                    : story.vocabulary?.some(v => {
+                        // For Turkish (native), check if the clean word matches any word in the translation
+                        const translationWords = v.translation.toLowerCase().split(/[\s,\/]+/);
+                        return translationWords.some(tw => tw === clean || clean.includes(tw) || tw.includes(clean));
+                    });
                 return { raw: rawWord, clean, isImportant: !!isImportant };
             });
             return { targetWords: processText(seg.target, 'target'), nativeWords: processText(seg.native, 'native') };
@@ -158,6 +348,33 @@ export default function ReadStoryScreen() {
         return count;
     };
 
+    const saveStoryToHistory = async (storyToSave: Story) => {
+        try {
+            const historyJson = await AsyncStorage.getItem('story_history');
+            let history: Story[] = historyJson ? JSON.parse(historyJson) : [];
+
+            // Check if story already exists
+            const exists = history.some(s => s.id === storyToSave.id);
+            if (!exists) {
+                // Add metadata
+                const storyWithMetadata: Story = {
+                    ...storyToSave,
+                    metadata: {
+                        ...storyToSave.metadata,
+                        readAt: new Date().toISOString(),
+                        completed: false,
+                    }
+                };
+
+                history.unshift(storyWithMetadata); // Add to beginning
+                await AsyncStorage.setItem('story_history', JSON.stringify(history));
+                console.log('✅ Story saved to history:', storyToSave.title);
+            }
+        } catch (error) {
+            console.error('❌ Failed to save story to history:', error);
+        }
+    };
+
     useEffect(() => {
         RNStatusBar.setHidden(true, 'fade');
         if (Platform.OS === 'android') { NavigationBar.setVisibilityAsync("hidden"); NavigationBar.setBehaviorAsync('overlay-swipe'); }
@@ -168,19 +385,57 @@ export default function ReadStoryScreen() {
 
             try {
                 setIsGenerating(true);
+                console.log('🎬 Starting fast story generation...');
 
-                // Generate story from Supabase AI function
-                const generatedStory = await generateDailyStory(userProfile);
+                // Get last story from history to determine series_state
+                const historyJson = await AsyncStorage.getItem('story_history');
+                const history: Story[] = historyJson ? JSON.parse(historyJson) : [];
+                const lastStory = history.length > 0 ? history[0] : null;
+
+                console.log('📚 Last story:', lastStory?.title || 'None (First story)');
+                console.log('📖 Series state:', lastStory ? 'continuation' : 'first');
+
+                // Generate story with fast API - story comes immediately, quiz loads in background
+                const { story: generatedStory, quizPromise } = await generateStoryFast(
+                    userProfile,
+                    'General',
+                    [],
+                    lastStory // Pass last story for series continuation
+                );
+
+                console.log('✅ Story received:', JSON.stringify(generatedStory, null, 2));
+                console.log('📚 Quiz loading in background...');
 
                 setStory(generatedStory);
+                setIsGenerating(false); // Show story immediately
+
+                // Save story to history
+                await saveStoryToHistory(generatedStory);
+
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+                // Quiz loads in background and updates story when ready
+                quizPromise.then((quizData) => {
+                    console.log('✅ Quiz generated successfully (background)');
+                    console.log('📝 Quiz data:', JSON.stringify(quizData, null, 2));
+
+                    // Update story with quiz data
+                    setStory(prevStory => {
+                        if (!prevStory) return prevStory;
+                        return {
+                            ...prevStory,
+                            quiz: quizData
+                        };
+                    });
+                }).catch(err => {
+                    console.error('❌ Quiz generation failed:', err);
+                });
             } catch (error) {
-                console.error('Failed to generate story:', error);
+                console.error('❌ Failed to generate story:', error);
                 // Fallback to mock story if generation fails
                 setStory(MOCK_STORY);
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            } finally {
                 setIsGenerating(false);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             }
         };
         loadContent();
@@ -204,11 +459,12 @@ export default function ReadStoryScreen() {
         // Increment stories read count
         await incrementStoriesRead();
 
-        // If this is the first story (from onboarding), navigate to quiz
-        if (isFirstStory && story) {
+        // Always navigate to quiz after story
+        if (story) {
+            console.log('📝 Navigating to quiz with story:', story.title);
             navigation.navigate('PostStoryQuiz' as any, { story });
         } else {
-            // Otherwise, go back to main tabs
+            // If no story (shouldn't happen), go back to main tabs
             navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
         }
     };
@@ -233,13 +489,7 @@ export default function ReadStoryScreen() {
     };
 
     if (isGenerating || !story) {
-        return (
-            <View style={styles.loadingContainer}>
-                <LinearGradient colors={THEME.bgGradient} style={StyleSheet.absoluteFill} />
-                <ActivityIndicator size="large" color={THEME.accent} />
-                <Text style={styles.loadingText}>Hikayeniz oluşturuluyor...</Text>
-            </View>
-        );
+        return <StoryLoadingScreen />;
     }
 
     const targetTitleOpacity = scrollX.interpolate({ inputRange: [0, width / 2, width], outputRange: [1, 0, 0], extrapolate: 'clamp' });
@@ -376,8 +626,150 @@ export default function ReadStoryScreen() {
 }
 
 const styles = StyleSheet.create({
-    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    loadingText: { color: THEME.textMain, marginTop: 16, fontFamily: FONTS.semiBold, fontSize: 16 },
+    loadingContainer: {
+        flex: 1,
+        backgroundColor: '#020617',
+    },
+    loadingHeader: {
+        paddingTop: 60,
+        paddingHorizontal: 32,
+        marginBottom: 20,
+    },
+    loadingLogoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    loadingLogoIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        backgroundColor: 'rgba(251, 191, 36, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(251, 191, 36, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingLogoText: {
+        color: 'rgba(255,255,255,0.9)',
+        fontSize: 13,
+        fontFamily: FONTS.semiBold,
+        letterSpacing: 2.4,
+    },
+    masteryTipContainer: {
+        position: 'absolute',
+        top: 60,
+        right: 24,
+        maxWidth: 180,
+        zIndex: 10,
+    },
+    masteryTipBlur: {
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
+        padding: 12,
+        overflow: 'hidden',
+    },
+    masteryTipLabel: {
+        color: '#fbbf24',
+        fontSize: 10,
+        fontFamily: FONTS.bold,
+        letterSpacing: 1.5,
+        marginBottom: 4,
+    },
+    masteryTipText: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 11,
+        fontFamily: FONTS.regular,
+        lineHeight: 16,
+    },
+    loadingCenterContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+    },
+    wordGlowBackground: {
+        position: 'absolute',
+        width: 500,
+        height: 500,
+        borderRadius: 250,
+        backgroundColor: 'rgba(251, 191, 36, 0.05)',
+    },
+    wordCard: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    wordForeign: {
+        color: '#fbbf24',
+        fontSize: 64,
+        fontFamily: FONTS.bold,
+        letterSpacing: -1,
+        textAlign: 'center',
+        marginBottom: 16,
+        textShadowColor: 'rgba(251, 191, 36, 0.3)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 20,
+    },
+    wordDivider: {
+        width: 48,
+        height: 1,
+        backgroundColor: 'rgba(251, 191, 36, 0.3)',
+        marginBottom: 16,
+    },
+    wordTranslation: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 20,
+        fontFamily: FONTS.regular,
+        letterSpacing: 4,
+        textAlign: 'center',
+    },
+    loadingFooter: {
+        paddingBottom: 64,
+        paddingHorizontal: 32,
+        alignItems: 'center',
+        gap: 8,
+    },
+    loadingStatus: {
+        color: '#fff',
+        fontSize: 18,
+        fontFamily: FONTS.regular,
+        letterSpacing: 0.5,
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    loadingSubtext: {
+        color: 'rgba(255,255,255,0.3)',
+        fontSize: 10,
+        fontFamily: FONTS.semiBold,
+        letterSpacing: 4.8,
+        marginBottom: 24,
+    },
+    bouncingBalls: {
+        flexDirection: 'row',
+        gap: 12,
+        alignItems: 'flex-end',
+        height: 40,
+        marginBottom: 32,
+    },
+    ball: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#fbbf24',
+        shadowColor: '#fbbf24',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.6,
+        shadowRadius: 8,
+    },
+    loadingTagline: {
+        color: 'rgba(255,255,255,0.2)',
+        fontSize: 10,
+        fontFamily: FONTS.semiBold,
+        letterSpacing: 2.4,
+        textAlign: 'center',
+    },
 
     mainContainer: { flex: 1, overflow: 'hidden' },
     sheetContainer: { marginTop: 60, borderTopLeftRadius: 32, borderTopRightRadius: 32 },
