@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -48,11 +48,20 @@ export default function App() {
   });
 
   // 2. Fontlar yüklenir yüklenmez Native Splash'i GİZLE
-  const onLayoutRootView = useCallback(async () => {
+  // useEffect kullanıyoruz çünkü onLayout production build'lerde tetiklenmeyebilir
+  useEffect(() => {
     if (fontsLoaded || fontError) {
-      await SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
+
+  // 3. Güvenlik: 5 saniye sonra splash'i zorla gizle (fontlar yüklenmese bile)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;
@@ -65,8 +74,7 @@ export default function App() {
           <SubscriptionProvider>
             <XPProvider>
               <SafeAreaProvider>
-            {/* Layout yüklendiği an Native Splash gidecek, alttaki WelcomeScreen görünecek */}
-            <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <View style={{ flex: 1 }}>
               <NavigationContainer>
                 {/* initialRouteName her zaman 'Welcome' olsun ki animasyonu görelim */}
                 <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
