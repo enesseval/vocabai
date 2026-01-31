@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -47,11 +47,18 @@ export default function App() {
   });
 
   // 2. Fontlar yüklenir yüklenmez Native Splash'i GİZLE
-  const onLayoutRootView = useCallback(async () => {
+  useEffect(() => {
     if (fontsLoaded || fontError) {
-      await SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;
@@ -64,7 +71,7 @@ export default function App() {
           <XPProvider>
             <SafeAreaProvider>
             {/* Layout yüklendiği an Native Splash gidecek, alttaki WelcomeScreen görünecek */}
-            <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <View style={{ flex: 1 }}>
               <NavigationContainer>
                 {/* initialRouteName her zaman 'Welcome' olsun ki animasyonu görelim */}
                 <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Welcome">
